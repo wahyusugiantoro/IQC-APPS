@@ -172,50 +172,111 @@
       border: 1px solid #f1f5f9;
     }
 
-    /* SCANNER MODAL */
+    /* FROSTED GLASS SCANNER MODAL & LASER OVERLAY */
     #scanner-modal {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: #0f172a;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       z-index: 99999;
       color: white;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      animation: fadeIn 0.25s ease-out;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     .scanner-header {
-      padding: 16px;
+      padding: 18px 20px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid #1e293b;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     .btn-back {
-      background: #334155;
+      background: rgba(255, 255, 255, 0.15);
       color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 13px;
       cursor: pointer;
       font-weight: 600;
+      backdrop-filter: blur(10px);
     }
-    .scanner-box {
-      background: #1e293b;
+
+    .scanner-viewport-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       margin: 16px;
       padding: 16px;
-      border-radius: 20px;
+      border-radius: 24px;
       text-align: center;
-      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
+
+    .scanner-frame-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 0 30px rgba(2, 132, 199, 0.3);
+    }
+
     #reader {
       width: 100%;
-      min-height: 220px;
-      border-radius: 14px;
-      overflow: hidden;
-      margin-top: 10px;
-      background: #000;
+      min-height: 280px;
+      border: none !important;
     }
+    #reader video {
+      object-fit: cover !important;
+      border-radius: 20px;
+    }
+
+    /* HUD SCANNER TARGET & ANIMATED LASER LINE */
+    .scanner-hud-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .scanner-laser {
+      position: absolute;
+      top: 10%; left: 8%; right: 8%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #38bdf8, #00f2fe, #38bdf8, transparent);
+      box-shadow: 0 0 15px #38bdf8, 0 0 8px #00f2fe;
+      border-radius: 3px;
+      animation: laserSweep 2s infinite ease-in-out;
+    }
+
+    @keyframes laserSweep {
+      0% { top: 12%; opacity: 0.3; }
+      50% { top: 85%; opacity: 1; }
+      100% { top: 12%; opacity: 0.3; }
+    }
+
+    .hud-corner {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border: 4px solid #38bdf8;
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.9));
+    }
+    .corner-tl { top: 16px; left: 16px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+    .corner-tr { top: 16px; right: 16px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+    .corner-bl { bottom: 16px; left: 16px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+    .corner-br { bottom: 16px; right: 16px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
 
     .manual-input-container { padding: 0 16px 20px 16px; position: relative; }
     .suggestion-list {
@@ -622,7 +683,7 @@
       </div>
     </div>
 
-    <!-- PAGE 5: UPLOAD FOTO SIGN NC (DENGAN SCAN BARCODE / QR CODE) -->
+    <!-- PAGE 5: UPLOAD FOTO SIGN NC (DENGAN LIVE CAMERA SCAN BARCODE / QR CODE) -->
     <div id="view-upload-sign" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -630,12 +691,10 @@
       </div>
 
       <div class="custom-card">
-        <!-- FITUR SCAN BARCODE / QR CODE FITUR BARU -->
-        <input type="file" id="sign-nc-qr-file" accept="image/*" capture="environment" style="display:none;" onchange="scanSignNcQrFile(this)">
-        <button type="button" class="btn-primary-custom mb-2" style="background:#0284c7;" onclick="document.getElementById('sign-nc-qr-file').click()">
-          📷 Scan QR / Barcode NCP
+        <!-- LIVE SCANNER TOMBOL DIRECT CAMERA -->
+        <button type="button" class="btn-primary-custom mb-3" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size:14px;" onclick="openSignNcScanner()">
+          📸 Live Scan QR / Barcode NCP
         </button>
-        <div id="sign-nc-qr-msg" style="font-size:12px; margin-bottom:12px; display:none;"></div>
 
         <div class="form-group mb-3">
           <label>Cari / Ketik Nomor NCP *:</label>
@@ -660,27 +719,32 @@
   </div>
 </div>
 
-<!-- SCANNER MODAL -->
+<!-- LIVE SCANNER MODAL HIGH-TECH FROSTED GLASS -->
 <div id="scanner-modal" class="no-print">
   <div class="scanner-header">
-    <button type="button" class="btn-back" onclick="closeScanner()">← Back 返回</button>
-    <strong style="font-size:15px;" id="scan-modal-title">Scan QR Code 扫描二维码</strong>
+    <strong style="font-size:16px; font-weight:800; color:#38bdf8;" id="scan-modal-title">📷 Live Scanner Barcode/QR</strong>
+    <button type="button" class="btn-back" onclick="closeScanner()">✕ Tutup</button>
   </div>
 
-  <div class="scanner-box">
-    <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none;" onchange="scanImageFile(this)">
-    
-    <button type="button" class="btn-primary-custom" style="background:#0284c7; padding:14px; font-size:15px;" onclick="document.getElementById('qr-file-input').click()">
-      📷 Ambil Foto / Scan QR Tag
-    </button>
-    
-    <div id="scanner-msg" style="font-size:13px; color:#94a3b8; margin-top:12px;">Ketuk tombol di atas untuk memfoto QR Code.</div>
-    <div id="reader" style="display:none;"></div>
+  <div class="scanner-viewport-card">
+    <div class="scanner-frame-wrapper">
+      <div id="reader"></div>
+      <div class="scanner-hud-overlay">
+        <div class="scanner-laser"></div>
+        <div class="hud-corner corner-tl"></div>
+        <div class="hud-corner corner-tr"></div>
+        <div class="hud-corner corner-bl"></div>
+        <div class="hud-corner corner-br"></div>
+      </div>
+    </div>
+    <div id="scanner-msg" style="font-size:12px; color:#38bdf8; margin-top:14px; font-weight:600;">
+      Arahkan kamera langsung ke QR Code / Barcode NCP...
+    </div>
   </div>
 
-  <div class="manual-input-container">
+  <div class="manual-input-container" id="scanner-manual-box">
     <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:6px; font-weight: bold;">
-      Search / Type Code (Ketik Sebagian Kode):
+      Atau Ketik Manual / Cari Kode NCP:
     </label>
     <div style="position:relative;">
       <div style="display:flex; gap:8px;">
@@ -750,10 +814,11 @@
 </div>
 
 <script>
-  // CONFIG UNTUK DEVELOPMENT GITHUB (BISA DIPAKAI JIKA DI-HOST DI GITHUB PAGES)
+  // CONFIG UNTUK DEVELOPMENT GITHUB
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLbDlNbbpfi6q-tmCdPfDOIhWHlCSROOPkaOBONDwlAg_jnQvGVHZVgdfN6Lh4F98/exec";
 
   let currentTxType = 'IN';
+  let activeScanTarget = 'INVENTORY'; // 'INVENTORY' atau 'SIGN_NC'
   let scannedNcpData = null;
   let searchTimeout = null;
   let tagSearchTimeout = null;
@@ -762,11 +827,12 @@
   let currentPrintData = null;
   let signNcBase64 = '';
 
+  let html5QrCodeScanner = null;
+
   let chartCategoryInstance = null;
   let chartStatusInstance = null;
   let chartTopPartsInstance = null;
 
-  // RUNNER UNIVERSAL: MENDUKUNG NATIVE GOOGLE SCRIPT RUN MAUPUN GITHUB FETCH API
   function callBackend(actionName, payload, onSuccess, onFailure) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
       const runner = google.script.run.withSuccessHandler(onSuccess);
@@ -780,7 +846,6 @@
       else if (actionName === 'cariDataBatch') runner.cariDataBatch(payload.batchNoInput);
       else if (actionName === 'searchNcpPartial') runner.searchNcpPartial(payload.query);
     } else {
-      // DEVELOPMENT DI GITHUB PAGES / LOCALHOST
       fetch(WEB_APP_URL, {
         method: 'POST',
         body: JSON.stringify({ action: actionName, payload: payload })
@@ -1108,7 +1173,6 @@
     showAlert('Gambar gabungan kedua Pie Chart (.jpg) berhasil diunduh!', 'Unduh Berhasil', '📥');
   }
 
-  // FUNGSI PERBAIKAN UNDUH GRAFIK HD LANDSCAPE 1200x650 PX (TIDAK PENYET DI HP)
   function downloadChart(canvasId, fileName) {
     let chartInstance = null;
     if (canvasId === 'chartTopParts') chartInstance = chartTopPartsInstance;
@@ -1153,45 +1217,91 @@
     showAlert('Teks Laporan berhasil disalin! 文本已复制', 'Berhasil', '📋');
   }
 
-  function scanImageFile(input) {
-    if (input.files && input.files[0]) {
-      const msgEl = document.getElementById('scanner-msg');
-      msgEl.style.color = '#38bdf8';
-      msgEl.innerText = "⏳ Membaca QR Code dari foto…";
+  /* ENGINE LIVE CAMERA SCANNER IMPLEMENTATION */
+  function startLiveScanner(onSuccess) {
+    if (!html5QrCodeScanner) {
+      html5QrCodeScanner = new Html5Qrcode("reader");
+    }
 
-      const html5QrCode = new Html5Qrcode("reader");
-      const imageFile = input.files[0];
+    const config = {
+      fps: 15,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0
+    };
 
-      html5QrCode.scanFile(imageFile, true)
-        .then(decodedText => {
-          msgEl.style.color = '#4ade80';
-          msgEl.innerText = "✅ QR Berhasil Dibaca!";
-          fetchNcpDetail(decodedText);
-          input.value = '';
-        })
-        .catch(err => {
-          msgEl.style.color = '#f87171';
-          msgEl.innerText = "❌ QR Tidak Terbaca. Coba foto lebih dekat dan fokus.";
-          input.value = '';
+    document.getElementById('scanner-msg').innerText = "⏳ Membuka kamera live…";
+
+    html5QrCodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        // Beri getaran jika perangkat mendukung
+        if (navigator.vibrate) navigator.vibrate(100);
+        
+        stopLiveScanner().then(() => {
+          onSuccess(decodedText);
         });
+      },
+      (errorMessage) => {
+        // Frame error diabaikan
+      }
+    )
+    .then(() => {
+      document.getElementById('scanner-msg').innerText = "Arahkan kamera ke QR Code / Barcode NCP...";
+    })
+    .catch(err => {
+      console.error("Camera access error:", err);
+      document.getElementById('scanner-msg').innerText = "⚠️ Gagal membuka kamera. Izinkan akses kamera di browser HP Anda.";
+    });
+  }
+
+  async function stopLiveScanner() {
+    if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
+      try {
+        await html5QrCodeScanner.stop();
+      } catch (err) {
+        console.error("Error stopping camera:", err);
+      }
     }
   }
 
-  async function openScanner(txType) {
+  /* FUNGSI OPEN SCANNER UNTUK STOCK IN & OUT */
+  function openScanner(txType) {
+    activeScanTarget = 'INVENTORY';
     currentTxType = txType;
-    document.getElementById('scan-modal-title').innerText = (currentTxType === 'IN' ? '📥 Stock IN (入库)' : '📤 Stock OUT (出库)');
-    document.getElementById('ncp-detail-card').style.display = 'none';
-    document.getElementById('manual-ncp').value = '';
     
-    const msgEl = document.getElementById('scanner-msg');
-    msgEl.style.color = '#94a3b8';
-    msgEl.innerText = 'Ketuk tombol di atas untuk memfoto QR Code.';
+    document.getElementById('scan-modal-title').innerText = (currentTxType === 'IN' ? '📥 Live Scan Stock IN' : '📤 Live Scan Stock OUT');
+    document.getElementById('ncp-detail-card').style.display = 'none';
+    document.getElementById('scanner-manual-box').style.display = 'block';
+    document.getElementById('manual-ncp').value = '';
     
     hideSuggestions();
     document.getElementById('scanner-modal').style.display = 'block';
+
+    startLiveScanner((decodedCode) => {
+      fetchNcpDetail(decodedCode);
+    });
+  }
+
+  /* FUNGSI OPEN SCANNER UNTUK MENU UPLOAD FOTO SIGN NC */
+  function openSignNcScanner() {
+    activeScanTarget = 'SIGN_NC';
+    document.getElementById('scan-modal-title').innerText = "📸 Live Scan QR Sign NC";
+    document.getElementById('ncp-detail-card').style.display = 'none';
+    document.getElementById('scanner-manual-box').style.display = 'none';
+    
+    hideSuggestions();
+    document.getElementById('scanner-modal').style.display = 'block';
+
+    startLiveScanner((decodedCode) => {
+      closeScanner();
+      document.getElementById('sign-nc-search-ncp').value = decodedCode.trim();
+      showAlert("Kode NCP '" + decodedCode + "' berhasil ter-scan!", "Scan Berhasil", "✅");
+    });
   }
 
   async function closeScanner() {
+    await stopLiveScanner();
     hideSuggestions();
     document.getElementById('scanner-modal').style.display = 'none';
   }
@@ -1270,6 +1380,8 @@
 
       if (res.success) {
         scannedNcpData = res;
+        stopLiveScanner();
+
         document.getElementById('det-tx-title').innerText = (currentTxType === 'IN' ? '📥 Stock IN (入库)' : '📤 Stock OUT (出库)');
         document.getElementById('det-ncp').innerText = res.ncpCode;
         document.getElementById('det-partno').innerText = res.partNo;
@@ -1326,6 +1438,7 @@
 
       if (res.success) {
         showAlert(res.message, 'Berhasil', '✅');
+        closeScanner();
         resetScannerView();
       } else {
         showAlert(res.message, 'Gagal', '❌');
@@ -1561,33 +1674,6 @@
     setTimeout(function() { window.print(); }, 300);
   }
 
-  /* KODE JS SCAN BARCODE / QR PADA HALAMAN UPLOAD FOTO SIGN NC */
-  function scanSignNcQrFile(input) {
-    if (input.files && input.files[0]) {
-      const msgEl = document.getElementById('sign-nc-qr-msg');
-      msgEl.style.display = 'block';
-      msgEl.style.color = '#0284c7';
-      msgEl.innerText = "⏳ Membaca QR Code / Barcode…";
-
-      const html5QrCode = new Html5Qrcode("reader");
-      const imageFile = input.files[0];
-
-      html5QrCode.scanFile(imageFile, true)
-        .then(decodedText => {
-          msgEl.style.color = '#16a34a';
-          msgEl.innerText = "✅ QR/Barcode Berhasil Dibaca: " + decodedText;
-          document.getElementById('sign-nc-search-ncp').value = decodedText.trim();
-          hideSignNcSuggestions();
-          input.value = '';
-        })
-        .catch(err => {
-          msgEl.style.color = '#dc2626';
-          msgEl.innerText = "❌ QR/Barcode Tidak Terbaca. Coba foto lebih dekat & jelas.";
-          input.value = '';
-        });
-    }
-  }
-
   function handleSignNcSearchInput(val) {
     const query = val.trim();
     if (query.length < 2) {
@@ -1670,7 +1756,6 @@
         document.getElementById('sign-nc-search-ncp').value = '';
         document.getElementById('sign-nc-file').value = '';
         document.getElementById('sign-nc-preview-container').style.display = 'none';
-        document.getElementById('sign-nc-qr-msg').style.display = 'none';
         signNcBase64 = '';
       } else {
         showAlert(res.message, 'Gagal', '❌');
