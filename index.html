@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IQC App - Integrated Dashboard System</title>
+  
+  <!-- Bootstrap CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <!-- Library QR Code Scanner, QR Code Generator, Chart.js & Chart.js Datalabels Plugin -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f8fafc; margin: 0; padding: 0; color: #1e293b; }
+    
+    /* LOGIN VIEW */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+    .login-card {
+      background: white;
+      padding: 32px 24px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo-badge {
+      width: 76px;
+      height: 76px;
+      background: #0284c7;
+      color: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 24px;
+      margin: 0 auto 18px auto;
+      box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35);
+      letter-spacing: 1px;
+    }
+    .login-title { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+    .login-sub { font-size: 13px; color: #64748b; margin-bottom: 28px; font-weight: 500; }
+
+    .form-group { text-align: left; margin-bottom: 18px; position: relative; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 14px;
+      background-color: #f8fafc;
+      color: #0f172a;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus { outline: none; border-color: #0284c7; background-color: white; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+
+    .btn-primary-custom {
+      width: 100%;
+      padding: 13px;
+      background-color: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-block;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .btn-primary-custom:active { opacity: 0.85; transform: scale(0.97); }
+
+    /* NAVBAR & TOPBAR */
+    #app-view { display: none; }
+    .topbar {
+      background: #0f172a;
+      color: white;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .user-info { font-size: 12px; }
+    .user-info strong { display: block; font-size: 15px; color: #38bdf8; }
+    .btn-switch {
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .app-container { padding: 16px; max-width: 800px; margin: 0 auto; }
+
+    /* DASHBOARD GRID */
+    .grid-dashboard {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .menu-card {
+      background: white;
+      border-radius: 20px;
+      padding: 22px 14px;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .menu-card:active {
+      transform: scale(0.94);
+      background-color: #f1f5f9;
+    }
+    .icon-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 12px auto;
+    }
+    .menu-title { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .menu-sub { font-size: 11px; color: #64748b; margin-top: 4px; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .btn-back-dash {
+      background: #e2e8f0;
+      color: #334155;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .custom-card {
+      background: white;
+      padding: 18px;
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      margin-bottom: 16px;
+      border: 1px solid #f1f5f9;
+    }
+
+    /* SCANNER MODAL */
+    #scanner-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #0f172a;
+      z-index: 99999;
+      color: white;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .scanner-header {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .btn-back {
+      background: #334155;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .scanner-box {
+      background: #1e293b;
+      margin: 16px;
+      padding: 16px;
+      border-radius: 20px;
+      text-align: center;
+      position: relative;
+    }
+    #reader {
+      width: 100%;
+      min-height: 220px;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 10px;
+      background: #000;
+    }
+
+    .manual-input-container { padding: 0 16px 20px 16px; position: relative; }
+    .suggestion-list {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: white; border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      max-height: 200px; overflow-y: auto;
+      z-index: 100001; display: none; margin-top: 4px;
+      border: 1px solid #cbd5e1;
+    }
+    .suggestion-item { padding: 12px 14px; font-size: 13px; color: #0f172a; cursor: pointer; border-bottom: 1px solid #f1f5f9; text-align: left; }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:active, .suggestion-item:hover { background-color: #e0f2fe; color: #0284c7; }
+    .suggestion-item small { display: block; color: #64748b; font-size: 11px; margin-top: 2px; }
+
+    .table-inv { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+    .table-inv th, .table-inv td { border: 1px solid #e2e8f0; padding: 8px 6px; text-align: left; }
+    .table-inv th { background: #f8fafc; font-weight: bold; color: #334155; }
+    .badge-status { padding: 4px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; white-space: nowrap; }
+    .badge-in { background: #dcfce7; color: #15803d; }
+
+    /* RED TAG FORMAT */
+    .red-tag-container {
+      width: 100%;
+      max-width: 98mm;
+      margin: 0 auto 15px auto;
+      border: 2px solid #b91c1c;
+      background: #ffffff;
+      font-family: Arial, sans-serif;
+      color: #000;
+      box-sizing: border-box;
+      page-break-after: always;
+    }
+    .red-tag-header {
+      background: #b91c1c;
+      color: white;
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .red-tag-title-cn { font-size: 12px; font-weight: bold; }
+    .red-tag-title-en { font-size: 10px; font-weight: bold; letter-spacing: 0.3px; }
+
+    .red-tag-body { padding: 6px 8px; font-size: 10px; }
+    .tag-row { display: flex; border-bottom: 1px solid #000; padding: 3px 0; align-items: center; }
+    .tag-row:last-child { border-bottom: none; }
+    .tag-label { font-weight: bold; width: 115px; flex-shrink: 0; font-size: 10px; }
+    .tag-val { flex-grow: 1; word-break: break-all; font-size: 10px; }
+    .qty-banner {
+      background: #fff;
+      color: #b91c1c;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 900;
+      border-top: 2px solid #b91c1c;
+      border-bottom: 2px solid #b91c1c;
+      padding: 2px 0;
+      margin: 4px 0;
+    }
+
+    .red-tag-footer {
+      background: #b91c1c;
+      color: white;
+      padding: 6px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* IOS MODAL */
+    .ios-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 200000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .ios-modal-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      overflow: hidden;
+      animation: iosPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes iosPop {
+      from { transform: scale(0.82); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .ios-modal-body { padding: 22px 18px 16px 18px; }
+    .ios-modal-icon { font-size: 38px; margin-bottom: 8px; }
+    .ios-modal-title { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+    .ios-modal-msg { font-size: 13px; color: #334155; line-height: 1.4; word-break: break-word; }
+    .ios-modal-actions { border-top: 1px solid rgba(203, 213, 225, 0.6); display: flex; }
+    .ios-modal-btn {
+      flex: 1;
+      padding: 13px;
+      border: none;
+      background: transparent;
+      color: #0284c7;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .ios-modal-btn:active { background: rgba(0, 0, 0, 0.05); }
+
+    /* CHART WRAPPER STYLING */
+    .chart-report-card {
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-view" class="login-container">
+  <div class="login-card">
+    <div class="logo-badge">IQC</div>
+    <div class="login-title">IQC Smart App</div>
+    <div class="login-sub">Integrated Dashboard System by Sugiantoro</div>
+
+    <div class="form-group">
+      <label>Full Name 姓名 *</label>
+      <input type="text" id="login-name" placeholder="Enter full name 请输入姓名">
+    </div>
+
+    <div class="form-group">
+      <label>Department 部门 *</label>
+      <select id="login-dept">
+        <option value="">— Select department 请选择部门 —</option>
+        <option value="Quality Handal">Quality Handal (Handal 质量部)</option>
+        <option value="Quality Geely">Quality Geely (Geely 质量部)</option>
+        <option value="Logistics">Logistics / Warehouse (物流部)</option>
+        <option value="Production">Production / Assembly (生产部)</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn-primary-custom" onclick="doLogin()">Continue 继续 →</button>
+  </div>
+</div>
+
+<!-- MAIN APP VIEW -->
+<div id="app-view">
+  <div class="topbar no-print">
+    <div class="user-info">
+      <span id="disp-dept">Dept</span>
+      <strong id="disp-name">User Name</strong>
+    </div>
+    <button type="button" class="btn-switch" onclick="logout()">Switch 切换</button>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="no-print">
+      <div style="margin-bottom:12px;">
+        <span style="font-size:12px; color:#64748b; font-weight:bold; letter-spacing:0.5px;">MAIN MENU 主菜单</span>
+      </div>
+
+      <div class="grid-dashboard">
+        <div class="menu-card" onclick="showPage('iqc')">
+          <div class="icon-box" style="background:#e0f2fe; color:#0284c7;">📑</div>
+          <div class="menu-title">IQC Daily Report</div>
+          <div class="menu-sub">Laporan Ringkas & Chart</div>
+        </div>
+
+        <div class="menu-card" onclick="openScanner('IN')">
+          <div class="icon-box" style="background:#dcfce7; color:#16a34a;">📥</div>
+          <div class="menu-title">Stock In</div>
+          <div class="menu-sub">Scan 入库</div>
+        </div>
+
+        <div class="menu-card" onclick="openScanner('OUT')">
+          <div class="icon-box" style="background:#fee2e2; color:#dc2626;">📤</div>
+          <div class="menu-title">Stock Out</div>
+          <div class="menu-sub">Scan 出库</div>
+        </div>
+
+        <div class="menu-card" onclick="showPage('inventory')">
+          <div class="icon-box" style="background:#fef3c7; color:#d97706;">📊</div>
+          <div class="menu-title">Stock Balance</div>
+          <div class="menu-sub">NG Inventory 库存</div>
+        </div>
+
+        <div class="menu-card" onclick="showPage('batch')">
+          <div class="icon-box" style="background:#f3e8ff; color:#9333ea;">📦</div>
+          <div class="menu-title">Status Batch NG</div>
+          <div class="menu-sub">Cek Scan per Batch</div>
+        </div>
+
+        <div class="menu-card" onclick="showPage('print-tag')">
+          <div class="icon-box" style="background:#ffe4e6; color:#e11d48;">🏷️</div>
+          <div class="menu-title">Print Tag Merah</div>
+          <div class="menu-sub">Cetak Label A6 & QR</div>
+        </div>
+
+        <!-- MENU: UPLOAD FOTO SIGN NC -->
+        <div class="menu-card" onclick="showPage('upload-sign')">
+          <div class="icon-box" style="background:#e0e7ff; color:#4338ca;">📸</div>
+          <div class="menu-title">Upload Foto Sign NC</div>
+          <div class="menu-sub">Upload Foto & Centang Spreadsheet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 1: IQC REPORT & CHART -->
+    <div id="view-iqc" style="display:none;" class="no-print">
+      <div class="page-header">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">IQC Report & Visual Chart Generator</strong>
+      </div>
+
+      <div class="custom-card">
+        <div class="form-group">
+          <label>Tanggal Laporan (Date)</label>
+          <input type="date" id="iqc-date">
+        </div>
+        <div class="form-group">
+          <label>Shift Kerja</label>
+          <select id="iqc-shift">
+            <option value="Pagi">☀️ Morning Shift (08:00 - 19:59)</option>
+            <option value="Malam">🌙 Night Shift (20:00 - 07:59)</option>
+            <option value="Gabungan">🔄 Full Day / Gabungan (Morning + Night)</option>
+          </select>
+        </div>
+        <button type="button" class="btn-primary-custom" onclick="genIqcReport()">⚡ Generate Report & Visual Chart</button>
+      </div>
+
+      <!-- HASIL TEKS RINGKAS -->
+      <div id="iqc-result" style="display:none;" class="custom-card">
+        <label>Teks Laporan Ringkas (WA / WeCom):</label>
+        <textarea id="iqc-txt" style="height:150px; font-family:monospace; font-size:12px; font-weight:bold;" readonly></textarea>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <a id="iqc-link-wa" class="btn-primary-custom" style="background:#25D366; text-decoration:none; text-align:center;" target="_blank">📲 Open WA</a>
+          <button type="button" class="btn-primary-custom" style="background:#2B73AF;" onclick="copyIqcText()">📋 Copy Text</button>
+        </div>
+      </div>
+
+      <!-- VISUAL GRAFIK / CHART GAMBAR PENDUKUNG -->
+      <div id="iqc-chart-section" style="display:none;">
+        
+        <!-- BAGIAN 1: COMBINED PIE CHARTS (CATEGORY & STATUS) DENGAN 1 TOMBOL UNDUH -->
+        <div class="chart-report-card mb-3">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div style="position: relative; height: 320px; background: #fff;">
+                <canvas id="chartStatus"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div style="position: relative; height: 320px; background: #fff;">
+                <canvas id="chartCategory"></canvas>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-custom mt-1" style="background:#10b981;" onclick="downloadCombinedPieCharts('IQC_Pie_Charts_Combined.jpg')">
+            📥 Unduh Gabungan Pie Charts (JPG)
+          </button>
+        </div>
+
+        <!-- BAGIAN 2: BAR CHART TOP NG PARTS -->
+        <div class="chart-report-card mb-4">
+          <div style="position: relative; height: 340px; background: #fff;">
+            <canvas id="chartTopParts"></canvas>
+          </div>
+          <button type="button" class="btn-primary-custom mt-3" style="background:#10b981;" onclick="downloadChart('chartTopParts', 'IQC_Top_Parts.jpg')">
+            📥 Unduh Top Parts (JPG)
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PAGE 2: STOCK BALANCE -->
+    <div id="view-inventory" style="display:none;" class="no-print">
+      <div class="page-header">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">Current Stock Balance</strong>
+      </div>
+
+      <div class="custom-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <span style="font-size:13px; font-weight:bold;">NG Parts In Quarantine</span>
+          <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadStockSummary()">🔄 Refresh</button>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <input type="text" id="stock-search-input" placeholder="🔍 Cari NCP, Part No, Batch No, atau Nama..." onkeyup="filterStockData()" style="background:#f1f5f9; font-weight:600;">
+        </div>
+
+        <div id="stock-list-area" style="overflow-x:auto;">Loading stock...</div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: STATUS BATCH NG -->
+    <div id="view-batch" style="display:none;" class="no-print">
+      <div class="page-header">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">Pencarian Status NG Batch</strong>
+      </div>
+
+      <div class="custom-card mb-3">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-search"></i> Cek Status Scan In per Batch</h6>
+        <div class="input-group">
+          <input type="text" id="inputBatchSearch" class="form-control" placeholder="Masukkan Nomor Batch">
+          <button class="btn btn-primary fw-bold" type="button" onclick="prosesCekBatch()">
+            <i class="bi bi-search"></i> Cari Batch
+          </button>
+        </div>
+      </div>
+
+      <div id="hasilBatchContainer" style="display:none;" class="mb-4">
+        <div class="row g-2 text-center mb-3">
+          <div class="col-4">
+            <div class="card bg-primary text-white p-2 border-0 shadow-sm">
+              <small style="font-size: 10px; opacity: 0.9;">Total NCP</small>
+              <h6 id="statTotalNCP" class="mb-0 fw-bold">0 Case</h6>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="card bg-danger text-white p-2 border-0 shadow-sm">
+              <small style="font-size: 10px; opacity: 0.9;">Belum Scan</small>
+              <h6 id="statBelumScan" class="mb-0 fw-bold">0 Case</h6>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="card bg-success text-white p-2 border-0 shadow-sm">
+              <small style="font-size: 10px; opacity: 0.9;">Sudah Scan</small>
+              <h6 id="statSudahScan" class="mb-0 fw-bold">0 Case</h6>
+            </div>
+          </div>
+        </div>
+
+        <div class="custom-card">
+          <h6 class="fw-bold mb-3">Daftar NCP Batch: <span id="lblBatchName" class="text-primary"></span></h6>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-start mb-0" style="font-size: 11px;">
+              <thead class="table-dark">
+                <tr>
+                  <th>No</th>
+                  <th>NCP Code</th>
+                  <th>Part Details</th>
+                  <th>Qty</th>
+                  <th>Defect</th>
+                  <th>Lokasi</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyListNCP"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: PRINT TAG MERAH (FORMAT A6) -->
+    <div id="view-print-tag" style="display:none;">
+      <div class="page-header no-print">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">Print Tag Merah (Format A6)</strong>
+      </div>
+
+      <div class="custom-card no-print">
+        <div class="form-group mb-2">
+          <label>Cari / Ketik Nomor NCP (Bisa ketik 3 atau 5 Angka Terakhir):</label>
+          <input type="text" id="tag-search-ncp" placeholder="Contoh: 582 atau 142103..." style="font-weight:bold; color:#0284c7;" oninput="handleTagSearchInput(this.value)" autocomplete="off">
+          <div id="tag-suggestion-box" class="suggestion-list"></div>
+        </div>
+        <button type="button" class="btn-primary-custom mb-3" onclick="loadNcpForPrint()">🔍 Preview Data Tag</button>
+
+        <div id="print-controls" style="display:none;" class="border-top pt-3">
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label>Mulai Copy ke-:</label>
+              <input type="number" id="start-copy" value="1" min="1">
+            </div>
+            <div class="col-6">
+              <label>Total Copy (Qty):</label>
+              <input type="number" id="total-copy" value="1" min="1">
+            </div>
+          </div>
+          <button type="button" class="btn-primary-custom" style="background:#dc2626;" onclick="executePrintTags()">🖨️ Cetak Tag Merah A6 Sekarang</button>
+        </div>
+      </div>
+
+      <div id="print-area">
+        <div id="tag-render-container"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 5: UPLOAD FOTO SIGN NC (DENGAN SCAN BARCODE / QR CODE) -->
+    <div id="view-upload-sign" style="display:none;" class="no-print">
+      <div class="page-header">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">Upload Foto Sign NC</strong>
+      </div>
+
+      <div class="custom-card">
+        <!-- FITUR SCAN BARCODE / QR CODE FITUR BARU -->
+        <input type="file" id="sign-nc-qr-file" accept="image/*" capture="environment" style="display:none;" onchange="scanSignNcQrFile(this)">
+        <button type="button" class="btn-primary-custom mb-2" style="background:#0284c7;" onclick="document.getElementById('sign-nc-qr-file').click()">
+          📷 Scan QR / Barcode NCP
+        </button>
+        <div id="sign-nc-qr-msg" style="font-size:12px; margin-bottom:12px; display:none;"></div>
+
+        <div class="form-group mb-3">
+          <label>Cari / Ketik Nomor NCP *:</label>
+          <input type="text" id="sign-nc-search-ncp" placeholder="Contoh: NCP-220626..." style="font-weight:bold; color:#0284c7;" oninput="handleSignNcSearchInput(this.value)" autocomplete="off">
+          <div id="sign-nc-suggestion-box" class="suggestion-list"></div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Ambil Foto / Pilih File Foto Sign NC *:</label>
+          <input type="file" id="sign-nc-file" accept="image/*" capture="environment" onchange="previewSignNcPhoto(this)">
+        </div>
+
+        <div id="sign-nc-preview-container" style="display:none; text-align:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
+          <label style="display:block; margin-bottom:6px; font-weight:bold;">Preview Foto Bukti:</label>
+          <img id="sign-nc-img-preview" src="" style="max-width:100%; max-height:250px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+        </div>
+
+        <button type="button" id="btn-submit-sign-nc" class="btn-primary-custom" style="background:#4338ca;" onclick="submitUploadSignNC()">📸 Upload Foto Sign NC</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCANNER MODAL -->
+<div id="scanner-modal" class="no-print">
+  <div class="scanner-header">
+    <button type="button" class="btn-back" onclick="closeScanner()">← Back 返回</button>
+    <strong style="font-size:15px;" id="scan-modal-title">Scan QR Code 扫描二维码</strong>
+  </div>
+
+  <div class="scanner-box">
+    <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none;" onchange="scanImageFile(this)">
+    
+    <button type="button" class="btn-primary-custom" style="background:#0284c7; padding:14px; font-size:15px;" onclick="document.getElementById('qr-file-input').click()">
+      📷 Ambil Foto / Scan QR Tag
+    </button>
+    
+    <div id="scanner-msg" style="font-size:13px; color:#94a3b8; margin-top:12px;">Ketuk tombol di atas untuk memfoto QR Code.</div>
+    <div id="reader" style="display:none;"></div>
+  </div>
+
+  <div class="manual-input-container">
+    <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:6px; font-weight: bold;">
+      Search / Type Code (Ketik Sebagian Kode):
+    </label>
+    <div style="position:relative;">
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="manual-ncp" placeholder="Misal: NCP-220626..." oninput="handleManualInput(this.value)" autocomplete="off" style="background: #ffffff; color: #0f172a; font-weight: bold;">
+        <button type="button" id="btn-manual-ok" class="btn-primary-custom" style="width:auto; padding:0 20px; white-space:nowrap;" onclick="submitManualNcp()">OK</button>
+      </div>
+      
+      <div id="suggestion-box" class="suggestion-list"></div>
+    </div>
+  </div>
+
+  <div id="ncp-detail-card" style="display:none; padding:16px;">
+    <div class="custom-card" style="color:#1e293b;">
+      <h3 style="margin:0 0 10px 0; font-size:15px; color:#0f172a;" id="det-tx-title">Transaction Detail</h3>
+      
+      <table style="width:100%; font-size:12px; line-height:1.6; margin-bottom:12px;">
+        <tr><td style="width:110px;"><strong>NCP Code:</strong></td><td id="det-ncp">-</td></tr>
+        <tr><td><strong>Part No:</strong></td><td id="det-partno">-</td></tr>
+        <tr><td><strong>Batch No (批次号):</strong></td><td id="det-batchno" style="font-weight:bold; color:#0284c7;">-</td></tr>
+        <tr><td><strong>Part Name:</strong></td><td id="det-partname">-</td></tr>
+        <tr><td><strong>Defect:</strong></td><td id="det-defect">-</td></tr>
+        <tr>
+          <td style="padding-top:8px;"><strong>Qty Transaksi *:</strong></td>
+          <td style="padding-top:8px;">
+            <input type="number" id="inv-qty" min="1" placeholder="Masukkan Qty" style="width: 100%; padding: 8px 10px; font-weight: bold; font-size: 15px; color: #0284c7; background: #f0f9ff; border: 2px solid #0284c7; border-radius: 8px;">
+          </td>
+        </tr>
+      </table>
+
+      <div class="form-group">
+        <label>Area / Location 存放位置 *</label>
+        <input type="text" id="inv-area" placeholder="e.g. Rack A-01 / Area Karantina">
+      </div>
+
+      <div class="form-group">
+        <label>Action / Status 处理状态 *</label>
+        <select id="inv-status">
+          <option value="Karantina (Quarantine)">Karantina (Quarantine 隔离)</option>
+          <option value="Rework OK">Rework OK (重工合格)</option>
+          <option value="Scrap">Scrap (报废)</option>
+          <option value="Return Supplier">Return Supplier (退回供应商)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Remarks 备注</label>
+        <input type="text" id="inv-remarks" placeholder="Catatan tambahan">
+      </div>
+
+      <button type="button" class="btn-primary-custom" id="btn-confirm-tx" onclick="confirmTransaction()">Confirm 确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- IOS FROSTED GLASS MODAL ALERT -->
+<div id="ios-modal-backdrop" class="ios-modal-backdrop">
+  <div class="ios-modal-card">
+    <div class="ios-modal-body">
+      <div id="ios-modal-icon" class="ios-modal-icon">💡</div>
+      <div id="ios-modal-title" class="ios-modal-title">Informasi</div>
+      <div id="ios-modal-msg" class="ios-modal-msg">Pesan sistem</div>
+    </div>
+    <div class="ios-modal-actions">
+      <button type="button" id="ios-modal-btn-ok" class="ios-modal-btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // CONFIG UNTUK DEVELOPMENT GITHUB (BISA DIPAKAI JIKA DI-HOST DI GITHUB PAGES)
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLbDlNbbpfi6q-tmCdPfDOIhWHlCSROOPkaOBONDwlAg_jnQvGVHZVgdfN6Lh4F98/exec";
+
+  let currentTxType = 'IN';
+  let scannedNcpData = null;
+  let searchTimeout = null;
+  let tagSearchTimeout = null;
+  let signNcSearchTimeout = null;
+  let globalStockData = [];
+  let currentPrintData = null;
+  let signNcBase64 = '';
+
+  let chartCategoryInstance = null;
+  let chartStatusInstance = null;
+  let chartTopPartsInstance = null;
+
+  // RUNNER UNIVERSAL: MENDUKUNG NATIVE GOOGLE SCRIPT RUN MAUPUN GITHUB FETCH API
+  function callBackend(actionName, payload, onSuccess, onFailure) {
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      const runner = google.script.run.withSuccessHandler(onSuccess);
+      if (onFailure) runner.withFailureHandler(onFailure);
+      
+      if (actionName === 'uploadFotoSignNC') runner.uploadFotoSignNC(payload);
+      else if (actionName === 'buatTeksLaporan') runner.buatTeksLaporan(payload.tanggalRaw, payload.shift);
+      else if (actionName === 'cariDataNCP') runner.cariDataNCP(payload.ncpCode);
+      else if (actionName === 'simpanTransaksiInventory') runner.simpanTransaksiInventory(payload);
+      else if (actionName === 'getSummaryInventory') runner.getSummaryInventory();
+      else if (actionName === 'cariDataBatch') runner.cariDataBatch(payload.batchNoInput);
+      else if (actionName === 'searchNcpPartial') runner.searchNcpPartial(payload.query);
+    } else {
+      // DEVELOPMENT DI GITHUB PAGES / LOCALHOST
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: actionName, payload: payload })
+      })
+      .then(res => res.json())
+      .then(data => onSuccess(data))
+      .catch(err => {
+        if (onFailure) onFailure(err);
+        else showAlert('HTTP Error: ' + err.message, 'Gagal', '❌');
+      });
+    }
+  }
+
+  const whiteBackgroundPlugin = {
+    id: 'customCanvasBackgroundColor',
+    beforeDraw: (chart) => {
+      const { ctx, width, height } = chart;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+    }
+  };
+
+  const watermarkPlugin = {
+    id: 'customWatermark',
+    afterDraw: (chart) => {
+      const { ctx, width, height } = chart;
+      ctx.save();
+      ctx.font = 'italic 6px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.fillStyle = 'rgba(100, 116, 139, 0.75)';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('Generated automatically by IQC Apps', width - 8, height - 6);
+      ctx.restore();
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById('iqc-date').valueAsDate = new Date();
+    checkLogin();
+  });
+
+  function showAlert(msg, title = 'Informasi', icon = '💡') {
+    return new Promise((resolve) => {
+      document.getElementById('ios-modal-icon').innerText = icon;
+      document.getElementById('ios-modal-title').innerText = title;
+      document.getElementById('ios-modal-msg').innerText = msg;
+      
+      const backdrop = document.getElementById('ios-modal-backdrop');
+      backdrop.style.display = 'flex';
+      
+      const btn = document.getElementById('ios-modal-btn-ok');
+      const closeHandler = () => {
+        backdrop.style.display = 'none';
+        btn.removeEventListener('click', closeHandler);
+        resolve(true);
+      };
+      btn.onclick = closeHandler;
+    });
+  }
+
+  function checkLogin() {
+    const userJson = localStorage.getItem('geely_ncp_user');
+    if (userJson) {
+      const user = JSON.parse(userJson);
+      document.getElementById('disp-name').innerText = user.name;
+      document.getElementById('disp-dept').innerText = user.dept;
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('app-view').style.display = 'block';
+      showPage('dashboard');
+    } else {
+      document.getElementById('login-view').style.display = 'flex';
+      document.getElementById('app-view').style.display = 'none';
+    }
+  }
+
+  function doLogin() {
+    const name = document.getElementById('login-name').value.trim();
+    const dept = document.getElementById('login-dept').value;
+
+    if (!name || !dept) {
+      showAlert('Isi Nama dan Departemen terlebih dahulu! 请填写姓名和部门', 'Peringatan', '⚠️');
+      return;
+    }
+
+    const userData = { name: name, dept: dept };
+    localStorage.setItem('geely_ncp_user', JSON.stringify(userData));
+    checkLogin();
+  }
+
+  function logout() {
+    showAlert('Pengguna berhasil diganti. Silakan login kembali.', 'Logout', '👋').then(() => {
+      localStorage.removeItem('geely_ncp_user');
+      checkLogin();
+    });
+  }
+
+  function showPage(pageId) {
+    document.getElementById('view-dashboard').style.display = 'none';
+    document.getElementById('view-iqc').style.display = 'none';
+    document.getElementById('view-inventory').style.display = 'none';
+    document.getElementById('view-batch').style.display = 'none';
+    document.getElementById('view-print-tag').style.display = 'none';
+    document.getElementById('view-upload-sign').style.display = 'none';
+
+    if (pageId === 'iqc') {
+      document.getElementById('view-iqc').style.display = 'block';
+    } else if (pageId === 'inventory') {
+      document.getElementById('view-inventory').style.display = 'block';
+      loadStockSummary();
+    } else if (pageId === 'batch') {
+      document.getElementById('view-batch').style.display = 'block';
+    } else if (pageId === 'print-tag') {
+      document.getElementById('view-print-tag').style.display = 'block';
+    } else if (pageId === 'upload-sign') {
+      document.getElementById('view-upload-sign').style.display = 'block';
+    } else {
+      document.getElementById('view-dashboard').style.display = 'block';
+    }
+  }
+
+  function genIqcReport() {
+    const tgl = document.getElementById('iqc-date').value;
+    const shift = document.getElementById('iqc-shift').value;
+
+    if (!tgl) {
+      showAlert('Pilih tanggal laporan terlebih dahulu!', 'Peringatan', '⚠️');
+      return;
+    }
+
+    callBackend('buatTeksLaporan', { tanggalRaw: tgl, shift: shift }, function(res) {
+      if (res.success) {
+        document.getElementById('iqc-txt').value = res.pesanWeCom;
+        document.getElementById('iqc-link-wa').href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(res.pesanWA);
+        document.getElementById('iqc-result').style.display = 'block';
+
+        document.getElementById('iqc-chart-section').style.display = 'block';
+        renderCharts(res.chartData);
+      } else {
+        showAlert(res.message, 'Gagal', '❌');
+      }
+    });
+  }
+
+  function renderCharts(data) {
+    Chart.register(ChartDataLabels);
+
+    const titleText = `IQC DAILY NC REPORT - ${data.dateStr}`;
+
+    const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+    if (chartStatusInstance) chartStatusInstance.destroy();
+
+    chartStatusInstance = new Chart(ctxStatus, {
+      type: 'pie',
+      data: {
+        labels: data.statusLabels,
+        datasets: [{
+          data: data.statusValues,
+          backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#64748b'],
+          offset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 10, bottom: 20, left: 10, right: 10 } },
+        plugins: {
+          title: {
+            display: true,
+            text: titleText,
+            color: '#0f172a',
+            font: { size: 14, weight: 'bold' },
+            padding: { top: 5, bottom: 2 }
+          },
+          subtitle: {
+            display: true,
+            text: `NC Distribution by Status (Total: ${data.totalNC} NC)`,
+            color: '#334155',
+            font: { size: 12, weight: 'bold' },
+            padding: { bottom: 12 }
+          },
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+          datalabels: {
+            color: '#ffffff',
+            font: { weight: 'bold', size: 11 },
+            formatter: (value) => {
+              return value > 0 ? value + " NC" : '';
+            }
+          }
+        }
+      },
+      plugins: [whiteBackgroundPlugin]
+    });
+
+    const ctxCat = document.getElementById('chartCategory').getContext('2d');
+    if (chartCategoryInstance) chartCategoryInstance.destroy();
+
+    chartCategoryInstance = new Chart(ctxCat, {
+      type: 'pie',
+      data: {
+        labels: data.catLabels,
+        datasets: [{
+          data: data.catValues,
+          backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'],
+          offset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 10, bottom: 20, left: 10, right: 10 } },
+        plugins: {
+          title: {
+            display: true,
+            text: titleText,
+            color: '#0f172a',
+            font: { size: 14, weight: 'bold' },
+            padding: { top: 5, bottom: 2 }
+          },
+          subtitle: {
+            display: true,
+            text: `NC Distribution by Category (Total: ${data.totalNC} NC)`,
+            color: '#334155',
+            font: { size: 12, weight: 'bold' },
+            padding: { bottom: 12 }
+          },
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
+          datalabels: {
+            color: '#ffffff',
+            font: { weight: 'bold', size: 11 },
+            formatter: (value) => {
+              return value > 0 ? value + " NC" : '';
+            }
+          }
+        }
+      },
+      plugins: [whiteBackgroundPlugin, watermarkPlugin]
+    });
+
+    const ctxTop = document.getElementById('chartTopParts').getContext('2d');
+    if (chartTopPartsInstance) chartTopPartsInstance.destroy();
+
+    const topChartTitle = `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`;
+
+    chartTopPartsInstance = new Chart(ctxTop, {
+      type: 'bar',
+      data: {
+        labels: data.topPartLabels,
+        datasets: [{
+          label: 'Quantity (Pcs)',
+          data: data.topPartValues,
+          backgroundColor: '#3b82f6',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 10, bottom: 18, left: 10, right: 10 } },
+        plugins: {
+          title: {
+            display: true,
+            text: topChartTitle,
+            color: '#0f172a',
+            font: { size: 15, weight: 'bold' },
+            padding: { top: 5, bottom: 15 }
+          },
+          legend: { display: false },
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            color: '#000000',
+            font: { weight: 'bold', size: 11 },
+            formatter: (val) => val + " Pcs"
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+          x: { 
+            grid: { display: false },
+            ticks: {
+              font: { size: 10, weight: '600' }
+            }
+          }
+        }
+      },
+      plugins: [whiteBackgroundPlugin, watermarkPlugin]
+    });
+  }
+
+  function downloadCombinedPieCharts(fileName) {
+    const canvas1 = document.getElementById('chartStatus');
+    const canvas2 = document.getElementById('chartCategory');
+
+    if (!canvas1 || !canvas2) return;
+
+    const tempCanvas = document.createElement('canvas');
+    const ctx = tempCanvas.getContext('2d');
+
+    const padding = 20;
+    const gap = 20;
+
+    const w1 = canvas1.width;
+    const h1 = canvas1.height;
+    const w2 = canvas2.width;
+    const h2 = canvas2.height;
+
+    tempCanvas.width = w1 + w2 + gap + (padding * 2);
+    tempCanvas.height = Math.max(h1, h2) + (padding * 2);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    ctx.drawImage(canvas1, padding, padding, w1, h1);
+    ctx.drawImage(canvas2, padding + w1 + gap, padding, w2, h2);
+
+    const link = document.createElement('a');
+    const exportName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+    link.href = tempCanvas.toDataURL('image/jpeg', 0.95);
+    link.download = exportName;
+    link.click();
+
+    showAlert('Gambar gabungan kedua Pie Chart (.jpg) berhasil diunduh!', 'Unduh Berhasil', '📥');
+  }
+
+  // FUNGSI PERBAIKAN UNDUH GRAFIK HD LANDSCAPE 1200x650 PX (TIDAK PENYET DI HP)
+  function downloadChart(canvasId, fileName) {
+    let chartInstance = null;
+    if (canvasId === 'chartTopParts') chartInstance = chartTopPartsInstance;
+    if (canvasId === 'chartStatus') chartInstance = chartStatusInstance;
+    if (canvasId === 'chartCategory') chartInstance = chartCategoryInstance;
+
+    if (!chartInstance) return;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = 1200;
+    exportCanvas.height = 650;
+    const ctx = exportCanvas.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    const tempChart = new Chart(ctx, {
+      type: chartInstance.config.type,
+      data: chartInstance.config.data,
+      options: Object.assign({}, chartInstance.config.options, {
+        responsive: false,
+        maintainAspectRatio: false,
+        animation: false
+      }),
+      plugins: chartInstance.config.plugins
+    });
+
+    const link = document.createElement('a');
+    const exportName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+    link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+    link.download = exportName;
+    link.click();
+
+    tempChart.destroy();
+    showAlert('Gambar chart HD (.jpg) berhasil diunduh!', 'Unduh Berhasil', '📥');
+  }
+
+  function copyIqcText() {
+    const txtArea = document.getElementById('iqc-txt');
+    txtArea.select();
+    navigator.clipboard.writeText(txtArea.value);
+    showAlert('Teks Laporan berhasil disalin! 文本已复制', 'Berhasil', '📋');
+  }
+
+  function scanImageFile(input) {
+    if (input.files && input.files[0]) {
+      const msgEl = document.getElementById('scanner-msg');
+      msgEl.style.color = '#38bdf8';
+      msgEl.innerText = "⏳ Membaca QR Code dari foto…";
+
+      const html5QrCode = new Html5Qrcode("reader");
+      const imageFile = input.files[0];
+
+      html5QrCode.scanFile(imageFile, true)
+        .then(decodedText => {
+          msgEl.style.color = '#4ade80';
+          msgEl.innerText = "✅ QR Berhasil Dibaca!";
+          fetchNcpDetail(decodedText);
+          input.value = '';
+        })
+        .catch(err => {
+          msgEl.style.color = '#f87171';
+          msgEl.innerText = "❌ QR Tidak Terbaca. Coba foto lebih dekat dan fokus.";
+          input.value = '';
+        });
+    }
+  }
+
+  async function openScanner(txType) {
+    currentTxType = txType;
+    document.getElementById('scan-modal-title').innerText = (currentTxType === 'IN' ? '📥 Stock IN (入库)' : '📤 Stock OUT (出库)');
+    document.getElementById('ncp-detail-card').style.display = 'none';
+    document.getElementById('manual-ncp').value = '';
+    
+    const msgEl = document.getElementById('scanner-msg');
+    msgEl.style.color = '#94a3b8';
+    msgEl.innerText = 'Ketuk tombol di atas untuk memfoto QR Code.';
+    
+    hideSuggestions();
+    document.getElementById('scanner-modal').style.display = 'block';
+  }
+
+  async function closeScanner() {
+    hideSuggestions();
+    document.getElementById('scanner-modal').style.display = 'none';
+  }
+
+  function resetScannerView() {
+    document.getElementById('ncp-detail-card').style.display = 'none';
+    document.getElementById('manual-ncp').value = '';
+    document.getElementById('inv-qty').value = '';
+    document.getElementById('inv-area').value = '';
+    document.getElementById('inv-remarks').value = '';
+    scannedNcpData = null;
+    hideSuggestions();
+  }
+
+  function handleManualInput(val) {
+    const query = val.trim();
+    if (query.length < 2) {
+      hideSuggestions();
+      return;
+    }
+
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      callBackend('searchNcpPartial', { query: query }, showSuggestions);
+    }, 300);
+  }
+
+  function showSuggestions(list) {
+    const sugBox = document.getElementById('suggestion-box');
+    sugBox.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      hideSuggestions();
+      return;
+    }
+
+    list.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item';
+      div.innerHTML = `<strong>${item.ncpCode}</strong> <small>${item.partNo} ${item.batchNo ? '| Batch: ' + item.batchNo : ''} - ${item.partName}</small>`;
+      div.onclick = function() {
+        document.getElementById('manual-ncp').value = item.ncpCode;
+        hideSuggestions();
+        fetchNcpDetail(item.ncpCode);
+      };
+      sugBox.appendChild(div);
+    });
+
+    sugBox.style.display = 'block';
+  }
+
+  function hideSuggestions() {
+    const sugBox = document.getElementById('suggestion-box');
+    if(sugBox) {
+      sugBox.style.display = 'none';
+      sugBox.innerHTML = '';
+    }
+  }
+
+  function submitManualNcp() {
+    const val = document.getElementById('manual-ncp').value.trim();
+    if (!val) { 
+      showAlert('Masukkan Kode NCP terlebih dahulu! 请输入NCP代码', 'Peringatan', '⚠️'); 
+      return; 
+    }
+    hideSuggestions();
+    fetchNcpDetail(val);
+  }
+
+  function fetchNcpDetail(ncpCode) {
+    const btn = document.getElementById('btn-manual-ok');
+    if (btn) { btn.innerText = '⏳...'; btn.disabled = true; }
+
+    callBackend('cariDataNCP', { ncpCode: ncpCode }, function(res) {
+      if (btn) { btn.innerText = 'OK'; btn.disabled = false; }
+
+      if (res.success) {
+        scannedNcpData = res;
+        document.getElementById('det-tx-title').innerText = (currentTxType === 'IN' ? '📥 Stock IN (入库)' : '📤 Stock OUT (出库)');
+        document.getElementById('det-ncp').innerText = res.ncpCode;
+        document.getElementById('det-partno').innerText = res.partNo;
+        document.getElementById('det-batchno').innerText = res.batchNo || '-';
+        document.getElementById('det-partname').innerText = res.partName;
+        document.getElementById('det-defect').innerText = res.defect;
+        
+        document.getElementById('inv-qty').value = res.qty || 1;
+        document.getElementById('inv-area').value = '';
+        document.getElementById('inv-remarks').value = '';
+
+        document.getElementById('ncp-detail-card').style.display = 'block';
+      } else {
+        showAlert(res.message, 'Gagal', '❌');
+      }
+    }, function(err) {
+      if (btn) { btn.innerText = 'OK'; btn.disabled = false; }
+      showAlert('Server Error: ' + err.message, 'Error', '⚠️');
+    });
+  }
+
+  function confirmTransaction() {
+    if (!scannedNcpData) return;
+
+    const editedQty = parseInt(document.getElementById('inv-qty').value);
+    if (isNaN(editedQty) || editedQty <= 0) {
+      showAlert('Masukkan Qty yang valid (> 0)!', 'Peringatan', '⚠️');
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('geely_ncp_user'));
+    const btn = document.getElementById('btn-confirm-tx');
+    btn.disabled = true;
+    btn.innerText = 'Saving...';
+
+    const payload = {
+      txType: currentTxType,
+      ncpCode: scannedNcpData.ncpCode,
+      partNo: scannedNcpData.partNo,
+      batchNo: scannedNcpData.batchNo || '-',
+      partName: scannedNcpData.partName,
+      qty: editedQty,
+      defect: scannedNcpData.defect,
+      actionStatus: document.getElementById('inv-status').value,
+      areaLocation: document.getElementById('inv-area').value.trim() || '-',
+      userName: user.name,
+      department: user.dept,
+      remarks: document.getElementById('inv-remarks').value.trim() || '-'
+    };
+
+    callBackend('simpanTransaksiInventory', payload, function(res) {
+      btn.disabled = false;
+      btn.innerText = 'Confirm 确认';
+
+      if (res.success) {
+        showAlert(res.message, 'Berhasil', '✅');
+        resetScannerView();
+      } else {
+        showAlert(res.message, 'Gagal', '❌');
+      }
+    });
+  }
+
+  function loadStockSummary() {
+    document.getElementById('stock-list-area').innerHTML = '<i>Loading stock...</i>';
+    document.getElementById('stock-search-input').value = '';
+    
+    callBackend('getSummaryInventory', {}, function(res) {
+      if (res.success) {
+        globalStockData = res.list || [];
+        renderStockTable(globalStockData);
+      } else {
+        document.getElementById('stock-list-area').innerHTML = 'Failed to load stock.';
+      }
+    });
+  }
+
+  function filterStockData() {
+    const query = document.getElementById('stock-search-input').value.toLowerCase().trim();
+    if (!query) {
+      renderStockTable(globalStockData);
+      return;
+    }
+
+    const filteredList = globalStockData.filter(item => {
+      return (item.ncpCode || '').toLowerCase().includes(query) ||
+             (item.partNo || '').toLowerCase().includes(query) ||
+             (item.batchNo || '').toLowerCase().includes(query) ||
+             (item.partName || '').toLowerCase().includes(query);
+    });
+
+    renderStockTable(filteredList);
+  }
+
+  function renderStockTable(list) {
+    if (!list || list.length === 0) {
+      document.getElementById('stock-list-area').innerHTML = '<div style="font-size:12px; color:#64748b; padding:12px 0; text-align:center;">Data stok tidak ditemukan.</div>';
+      return;
+    }
+
+    let html = `<table class="table-inv">
+      <thead>
+        <tr>
+          <th>NCP Code</th>
+          <th>Part Details</th>
+          <th>Batch No</th>
+          <th>Stock</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    list.forEach(item => {
+      html += `<tr>
+        <td><strong>${item.ncpCode}</strong></td>
+        <td>${item.partNo}<br><small style="color:#64748b;">${item.partName}</small></td>
+        <td><strong style="color:#0284c7;">${item.batchNo || '-'}</strong></td>
+        <td><span class="badge-status badge-in">${item.stock} Pcs</span></td>
+        <td><strong>${item.area}</strong></td>
+      </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById('stock-list-area').innerHTML = html;
+  }
+
+  function prosesCekBatch() {
+    var batchNo = document.getElementById('inputBatchSearch').value.trim();
+    if (!batchNo) {
+      showAlert("Silakan masukkan nomor batch terlebih dahulu!", "Peringatan", "⚠️");
+      return;
+    }
+
+    callBackend('cariDataBatch', { batchNoInput: batchNo }, function(res) {
+      if (!res.success) {
+        showAlert(res.message, "Informasi", "ℹ");
+        document.getElementById('hasilBatchContainer').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('hasilBatchContainer').style.display = 'block';
+      document.getElementById('lblBatchName').innerText = res.batchNo;
+
+      document.getElementById('statTotalNCP').innerText = res.summary.totalNCP + " Case (" + res.summary.totalQtyNG + " Pcs)";
+      document.getElementById('statBelumScan').innerText = res.summary.belumScanCount + " Case (" + res.summary.belumScanQty + " Pcs)";
+      document.getElementById('statSudahScan').innerText = res.summary.sudahScanCount + " Case (" + res.summary.sudahScanQty + " Pcs)";
+
+      var html = "";
+      res.ncpList.forEach(function(item, idx) {
+        var badgeClass = (item.statusScan === "Sudah Scan In") ? "bg-success" : "bg-danger";
+        html += "<tr>" +
+          "<td>" + (idx + 1) + "</td>" +
+          "<td><strong>" + item.ncpCode + "</strong></td>" +
+          "<td>" + item.partNo + "<br><small class='text-muted'>" + item.partName + "</small></td>" +
+          "<td><strong>" + item.qtyNG + "</strong> Pcs</td>" +
+          "<td>" + item.defect + "</td>" +
+          "<td>" + (item.areaLocation || "-") + "</td>" +
+          "<td><span class='badge " + badgeClass + "'>" + item.statusScan + "</span></td>" +
+        "</tr>";
+      });
+
+      document.getElementById('tbodyListNCP').innerHTML = html;
+    });
+  }
+
+  function handleTagSearchInput(val) {
+    const query = val.trim();
+    if (query.length < 3) {
+      hideTagSuggestions();
+      return;
+    }
+
+    clearTimeout(tagSearchTimeout);
+    tagSearchTimeout = setTimeout(() => {
+      callBackend('searchNcpPartial', { query: query }, showTagSuggestions);
+    }, 300);
+  }
+
+  function showTagSuggestions(list) {
+    const sugBox = document.getElementById('tag-suggestion-box');
+    sugBox.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      hideTagSuggestions();
+      return;
+    }
+
+    list.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item';
+      div.innerHTML = `<strong>${item.ncpCode}</strong> <small>${item.partNo} ${item.batchNo ? '| Batch: ' + item.batchNo : ''} - ${item.partName}</small>`;
+      div.onclick = function() {
+        document.getElementById('tag-search-ncp').value = item.ncpCode;
+        hideTagSuggestions();
+        loadNcpForPrint();
+      };
+      sugBox.appendChild(div);
+    });
+
+    sugBox.style.display = 'block';
+  }
+
+  function hideTagSuggestions() {
+    const sugBox = document.getElementById('tag-suggestion-box');
+    if (sugBox) sugBox.style.display = 'none';
+  }
+
+  function loadNcpForPrint() {
+    hideTagSuggestions();
+    var ncpCode = document.getElementById('tag-search-ncp').value.trim();
+    if (!ncpCode) {
+      showAlert("Masukkan Kode NCP terlebih dahulu!", "Peringatan", "⚠️");
+      return;
+    }
+
+    callBackend('cariDataNCP', { ncpCode: ncpCode }, function(res) {
+      if (!res.success) {
+        showAlert("Data NCP tidak ditemukan!", "Gagal", "❌");
+        document.getElementById('print-controls').style.display = 'none';
+        document.getElementById('tag-render-container').innerHTML = '';
+        return;
+      }
+
+      currentPrintData = res;
+      document.getElementById('total-copy').value = res.qty || 1;
+      document.getElementById('start-copy').value = 1;
+      document.getElementById('print-controls').style.display = 'block';
+
+      renderTagsPreview();
+    });
+  }
+
+  function renderTagsPreview() {
+    if (!currentPrintData) return;
+
+    var startCopy = parseInt(document.getElementById('start-copy').value) || 1;
+    var totalCopy = parseInt(document.getElementById('total-copy').value) || 1;
+    var html = "";
+
+    for (var i = startCopy; i <= totalCopy; i++) {
+      html += `
+      <div class="red-tag-container">
+        <div class="red-tag-header">
+          <div>
+            <div class="red-tag-title-en">NON-CONFORMING PRODUCT TAG</div>
+            <div class="red-tag-title-cn">不合格品标签</div>
+          </div>
+        </div>
+
+        <div class="red-tag-body">
+          <div class="tag-row">
+            <div class="tag-label">Part Number / 零件编号:</div>
+            <div class="tag-val"><strong>${currentPrintData.partNo}</strong></div>
+          </div>
+          <div class="tag-row">
+            <div class="tag-label">Part Name / 零件名称:</div>
+            <div class="tag-val">${currentPrintData.partName}</div>
+          </div>
+          <div class="tag-row">
+            <div class="tag-label">Batch No / 批次:</div>
+            <div class="tag-val"><strong>${currentPrintData.batchNo || '-'}</strong></div>
+          </div>
+          <div class="qty-banner">Qty / 数量: ${i} of ${totalCopy}</div>
+          <div class="tag-row" style="flex-direction:column; align-items:flex-start;">
+            <div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div>
+            <div class="tag-val" style="margin-top:2px; font-weight:bold;">${currentPrintData.defect || '-'}</div>
+          </div>
+        </div>
+
+        <div class="red-tag-footer">
+          <div style="font-size:16px; font-weight:900;">${currentPrintData.ncpCode}</div>
+          <div class="qrcode-target" data-code="${currentPrintData.ncpCode}"></div>
+        </div>
+      </div>`;
+    }
+
+    document.getElementById('tag-render-container').innerHTML = html;
+
+    setTimeout(function() {
+      document.querySelectorAll('.qrcode-target').forEach(function(el) {
+        el.innerHTML = "";
+        new QRCode(el, { text: el.getAttribute('data-code'), width: 80, height: 80 });
+      });
+    }, 100);
+  }
+
+  function executePrintTags() {
+    renderTagsPreview();
+    setTimeout(function() { window.print(); }, 300);
+  }
+
+  /* KODE JS SCAN BARCODE / QR PADA HALAMAN UPLOAD FOTO SIGN NC */
+  function scanSignNcQrFile(input) {
+    if (input.files && input.files[0]) {
+      const msgEl = document.getElementById('sign-nc-qr-msg');
+      msgEl.style.display = 'block';
+      msgEl.style.color = '#0284c7';
+      msgEl.innerText = "⏳ Membaca QR Code / Barcode…";
+
+      const html5QrCode = new Html5Qrcode("reader");
+      const imageFile = input.files[0];
+
+      html5QrCode.scanFile(imageFile, true)
+        .then(decodedText => {
+          msgEl.style.color = '#16a34a';
+          msgEl.innerText = "✅ QR/Barcode Berhasil Dibaca: " + decodedText;
+          document.getElementById('sign-nc-search-ncp').value = decodedText.trim();
+          hideSignNcSuggestions();
+          input.value = '';
+        })
+        .catch(err => {
+          msgEl.style.color = '#dc2626';
+          msgEl.innerText = "❌ QR/Barcode Tidak Terbaca. Coba foto lebih dekat & jelas.";
+          input.value = '';
+        });
+    }
+  }
+
+  function handleSignNcSearchInput(val) {
+    const query = val.trim();
+    if (query.length < 2) {
+      hideSignNcSuggestions();
+      return;
+    }
+
+    clearTimeout(signNcSearchTimeout);
+    signNcSearchTimeout = setTimeout(() => {
+      callBackend('searchNcpPartial', { query: query }, showSignNcSuggestions);
+    }, 300);
+  }
+
+  function showSignNcSuggestions(list) {
+    const sugBox = document.getElementById('sign-nc-suggestion-box');
+    sugBox.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      hideSignNcSuggestions();
+      return;
+    }
+
+    list.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item';
+      div.innerHTML = `<strong>${item.ncpCode}</strong> <small>${item.partNo} ${item.batchNo ? '| Batch: ' + item.batchNo : ''} - ${item.partName}</small>`;
+      div.onclick = function() {
+        document.getElementById('sign-nc-search-ncp').value = item.ncpCode;
+        hideSignNcSuggestions();
+      };
+      sugBox.appendChild(div);
+    });
+
+    sugBox.style.display = 'block';
+  }
+
+  function hideSignNcSuggestions() {
+    const sugBox = document.getElementById('sign-nc-suggestion-box');
+    if (sugBox) sugBox.style.display = 'none';
+  }
+
+  function previewSignNcPhoto(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        signNcBase64 = e.target.result;
+        document.getElementById('sign-nc-img-preview').src = signNcBase64;
+        document.getElementById('sign-nc-preview-container').style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function submitUploadSignNC() {
+    const ncpCode = document.getElementById('sign-nc-search-ncp').value.trim();
+    if (!ncpCode) {
+      showAlert('Masukkan / pilih Kode NCP terlebih dahulu!', 'Peringatan', '⚠️');
+      return;
+    }
+    if (!signNcBase64) {
+      showAlert('Ambil atau pilih foto terlebih dahulu!', 'Peringatan', '⚠️');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit-sign-nc');
+    btn.disabled = true;
+    btn.innerText = '⏳ Uploading & Updating...';
+
+    const payload = {
+      ncpCode: ncpCode,
+      base64Data: signNcBase64
+    };
+
+    callBackend('uploadFotoSignNC', payload, function(res) {
+      btn.disabled = false;
+      btn.innerText = '📸 Upload Foto Sign NC';
+
+      if (res.success) {
+        showAlert(res.message, 'Berhasil', '✅');
+        document.getElementById('sign-nc-search-ncp').value = '';
+        document.getElementById('sign-nc-file').value = '';
+        document.getElementById('sign-nc-preview-container').style.display = 'none';
+        document.getElementById('sign-nc-qr-msg').style.display = 'none';
+        signNcBase64 = '';
+      } else {
+        showAlert(res.message, 'Gagal', '❌');
+      }
+    }, function(err) {
+      btn.disabled = false;
+      btn.innerText = '📸 Upload Foto Sign NC';
+      showAlert('Server Error: ' + err.message, 'Error', '⚠️');
+    });
+  }
+</script>
+
+</body>
+</html>
