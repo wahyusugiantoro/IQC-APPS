@@ -1951,6 +1951,41 @@
       showAlert('Server Error: ' + err.message, 'Error', '⚠️');
     });
   }
+  function callBackend(actionName, payload, onSuccess, onFailure) {
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    const runner = google.script.run.withSuccessHandler(onSuccess);
+    if (onFailure) runner.withFailureHandler(onFailure);
+    
+    if (actionName === 'uploadFotoSignNC') runner.uploadFotoSignNC(payload);
+    else if (actionName === 'buatTeksLaporan') runner.buatTeksLaporan(payload.tanggalRaw, payload.shift);
+    else if (actionName === 'cariDataNCP') runner.cariDataNCP(payload.ncpCode);
+    else if (actionName === 'simpanTransaksiInventory') runner.simpanTransaksiInventory(payload);
+    else if (actionName === 'getSummaryInventory') runner.getSummaryInventory();
+    else if (actionName === 'cariDataBatch') runner.cariDataBatch(payload.batchNoInput);
+    else if (actionName === 'searchNcpPartial') runner.searchNcpPartial(payload.query);
+  } else {
+    // KONEKSI DARI GITHUB PAGES
+    fetch(WEB_APP_URL, {
+      method: 'POST',
+      mode: 'cors',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify({ action: actionName, payload: payload })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('HTTP Status ' + res.status);
+      return res.json();
+    })
+    .then(data => onSuccess(data))
+    .catch(err => {
+      console.error("Fetch Error:", err);
+      if (onFailure) onFailure(err);
+      else showAlert('HTTP Error: ' + err.message, 'Gagal', '❌');
+    });
+  }
+}
 </script>
 
 </body>
