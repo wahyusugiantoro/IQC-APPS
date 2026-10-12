@@ -488,7 +488,7 @@
 
 <script>
   // URL WEB APP GOOGLE APPS SCRIPT
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfIJr-FTqnRs5YfiLxzQPK7UMBtQuH9QQVFBzcU0RV2Sqhdk9mPRncp6sA91kTXXs/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzLbDlNbbpfi6q-tmCdPfDOIhWHlCSROOPkaOBONDwlAg_jnQvGVHZVgdfN6Lh4F98/exec";
 
   let currentTxType = 'IN';
   let activeScanTarget = 'INVENTORY';
@@ -504,7 +504,6 @@
   let chartStatusInstance = null;
   let chartTopPartsInstance = null;
 
-  // HANYA 1 FUNGSI callBackend DENGAN MODE redirect: 'follow'
   function callBackend(actionName, payload, onSuccess, onFailure) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
       const runner = google.script.run.withSuccessHandler(onSuccess);
@@ -1029,6 +1028,7 @@
     });
   }
 
+  // PERBAIKAN CONTINUOUS SCAN: TIDAK MENUTUP MODAL/KAMERA SAAT SUKSES
   function confirmTransaction() {
     if (!scannedNcpData) return;
 
@@ -1062,9 +1062,13 @@
       btn.disabled = false;
       btn.innerText = 'Confirm 确认';
       if (res.success) {
-        showAlert(res.message, 'Berhasil', '✅');
-        closeScanner();
-        resetScannerView();
+        // PERBAIKAN: SETELAH KLIK OK PADA ALERT, LANGSUNG BUKA KAMERA DENGAN CONTINUOUS SCAN
+        showAlert(res.message, 'Berhasil', '✅').then(() => {
+          resetScannerView();
+          document.getElementById('ncp-detail-card').style.display = 'none';
+          document.getElementById('scanner-manual-box').style.display = 'block';
+          startLiveScanner((decodedCode) => { fetchNcpDetail(decodedCode); });
+        });
       } else {
         showAlert(res.message, 'Gagal', '❌');
       }
