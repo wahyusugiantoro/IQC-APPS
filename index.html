@@ -335,6 +335,7 @@
       </div>
     </div>
 
+    <!-- MENU PRINT TAG MERAH VIA FILTER TANGGAL & SHIFT -->
     <div id="view-print-tag" style="display:none;">
       <div class="page-header no-print">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -342,12 +343,51 @@
       </div>
 
       <div class="custom-card no-print">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-funnel"></i> Filter Daftar NCP per Shift</h6>
+        <div class="row g-2 mb-2">
+          <div class="col-7">
+            <label>Tanggal Target:</label>
+            <input type="date" id="tag-filter-date" style="font-weight:bold;">
+          </div>
+          <div class="col-5">
+            <label>Shift Kerja:</label>
+            <select id="tag-filter-shift" style="font-weight:bold;">
+              <option value="Pagi">☀️ Morning</option>
+              <option value="Malam">🌙 Night</option>
+              <option value="Gabungan">🔄 Full Day</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" id="btn-load-date-shift" class="btn-primary-custom mb-3" onclick="loadNcpListByDateShift()">
+          🔍 Tampilkan Daftar NCP Shift Ini
+        </button>
+
+        <div id="ncp-list-table-container" style="display:none;" class="mb-3">
+          <div style="font-size:12px; font-weight:bold; color:#0f172a; margin-bottom:6px;">Pilih NCP yang ingin dicetak:</div>
+          <div class="table-responsive" style="max-height:220px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;">
+            <table class="table table-sm table-hover align-middle mb-0" style="font-size:11px;">
+              <thead class="table-light">
+                <tr>
+                  <th>No</th>
+                  <th>NCP Code</th>
+                  <th>Part Details</th>
+                  <th>Qty</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyNcpDateShift"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
+
         <div class="form-group mb-2">
-          <label>Cari / Ketik Nomor NCP (Bisa ketik 3 atau 5 Angka Terakhir):</label>
+          <label>Atau Cari Manual (Ketik Kode NCP / 3-5 Angka Terakhir):</label>
           <input type="text" id="tag-search-ncp" placeholder="Contoh: 582 atau 142103..." style="font-weight:bold; color:#0284c7;" oninput="handleTagSearchInput(this.value)" autocomplete="off">
           <div id="tag-suggestion-box" class="suggestion-list"></div>
         </div>
-        <button type="button" class="btn-primary-custom mb-3" onclick="loadNcpForPrint()">🔍 Preview Data Tag</button>
+        <button type="button" class="btn-primary-custom mb-3" style="background:#64748b;" onclick="loadNcpForPrint()">🔍 Preview Data Single NCP</button>
 
         <div id="print-controls" style="display:none;" class="border-top pt-3">
           <div class="row g-2 mb-3">
@@ -503,6 +543,7 @@
   let chartCategoryInstance = null;
   let chartStatusInstance = null;
   let chartTopPartsInstance = null;
+  let cachedNcpListDateShift = [];
 
   function callBackend(actionName, payload, onSuccess, onFailure) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -512,6 +553,7 @@
       if (actionName === 'uploadFotoSignNC') runner.uploadFotoSignNC(payload);
       else if (actionName === 'buatTeksLaporan') runner.buatTeksLaporan(payload.tanggalRaw, payload.shift);
       else if (actionName === 'cariDataNCP') runner.cariDataNCP(payload.ncpCode);
+      else if (actionName === 'getNcpByDateShift') runner.getNcpByDateShift(payload.tanggalRaw, payload.shift);
       else if (actionName === 'simpanTransaksiInventory') runner.simpanTransaksiInventory(payload);
       else if (actionName === 'getSummaryInventory') runner.getSummaryInventory();
       else if (actionName === 'cariDataBatch') runner.cariDataBatch(payload.batchNoInput);
@@ -566,7 +608,9 @@
   };
 
   document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById('iqc-date').valueAsDate = new Date();
+    const today = new Date();
+    document.getElementById('iqc-date').valueAsDate = today;
+    document.getElementById('tag-filter-date').valueAsDate = today;
     checkLogin();
   });
 
@@ -1028,7 +1072,6 @@
     });
   }
 
-  // PERBAIKAN CONTINUOUS SCAN: TIDAK MENUTUP MODAL/KAMERA SAAT SUKSES
   function confirmTransaction() {
     if (!scannedNcpData) return;
 
@@ -1062,7 +1105,6 @@
       btn.disabled = false;
       btn.innerText = 'Confirm 确认';
       if (res.success) {
-        // PERBAIKAN: SETELAH KLIK OK PADA ALERT, LANGSUNG BUKA KAMERA DENGAN CONTINUOUS SCAN
         showAlert(res.message, 'Berhasil', '✅').then(() => {
           resetScannerView();
           document.getElementById('ncp-detail-card').style.display = 'none';
@@ -1168,6 +1210,72 @@
 
       document.getElementById('tbodyListNCP').innerHTML = html;
     });
+  }
+
+  /* ------------------- FITUR PRINT TAG MERAH VIA TANGGAL & SHIFT ------------------- */
+  function loadNcpListByDateShift() {
+    const tgl = document.getElementById('tag-filter-date').value;
+    const shift = document.getElementById('tag-filter-shift').value;
+
+    if (!tgl) { showAlert("Pilih tanggal terlebih dahulu!", "Peringatan", "⚠️"); return; }
+
+    const btn = document.getElementById('btn-load-date-shift');
+    btn.disabled = true;
+    btn.innerText = "⏳ Memuat Daftar NCP...";
+
+    callBackend('getNcpByDateShift', { tanggalRaw: tgl, shift: shift }, function(res) {
+      btn.disabled = false;
+      btn.innerText = "🔍 Tampilkan Daftar NCP Shift Ini";
+
+      if (!res.success) {
+        showAlert(res.message, "Informasi", "ℹ️");
+        document.getElementById('ncp-list-table-container').style.display = 'none';
+        return;
+      }
+
+      cachedNcpListDateShift = res.ncpList || [];
+      renderNcpTableDateShift(cachedNcpListDateShift);
+    }, function(err) {
+      btn.disabled = false;
+      btn.innerText = "🔍 Tampilkan Daftar NCP Shift Ini";
+      showAlert("Server Error: " + err.message, "Gagal", "❌");
+    });
+  }
+
+  function renderNcpTableDateShift(list) {
+    const tbody = document.getElementById('tbodyNcpDateShift');
+    tbody.innerHTML = '';
+
+    list.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td><strong style="color:#0284c7;">${item.ncpCode}</strong></td>
+        <td>${item.partNo}<br><small class="text-muted">${item.partName}</small></td>
+        <td><strong>${item.qty}</strong> Pcs</td>
+        <td>
+          <button class="btn btn-sm btn-primary fw-bold" style="padding:2px 8px; font-size:10px;" onclick="selectNcpForPrint(${idx})">
+            🖨️ Cetak
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('ncp-list-table-container').style.display = 'block';
+  }
+
+  function selectNcpForPrint(index) {
+    if (cachedNcpListDateShift && cachedNcpListDateShift[index]) {
+      const selected = cachedNcpListDateShift[index];
+      currentPrintData = selected;
+      document.getElementById('total-copy').value = selected.qty || 1;
+      document.getElementById('start-copy').value = 1;
+      document.getElementById('print-controls').style.display = 'block';
+      renderTagsPreview();
+
+      document.getElementById('print-controls').scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   function handleTagSearchInput(val) {
