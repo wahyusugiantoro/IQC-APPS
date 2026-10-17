@@ -340,7 +340,11 @@
         <div id="subview-stock-cases" style="display:none;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-size:13px; font-weight:bold;">Monitoring Case Location</span>
-            <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadCaseSummaryData()">🔄 Refresh Cases</button>
+            <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadCaseSummaryData(true)">🔄 Refresh Cases</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+            <input type="text" id="case-search-input" placeholder="🔍 Cari NCP, Part No, Batch No, atau Location..." onkeyup="filterCaseSummaryData()" style="background:#f1f5f9; font-weight:600;">
           </div>
 
           <div id="case-summary-list-area">Loading case details...</div>
@@ -518,7 +522,7 @@
       </div>
     </div>
 
-    <!-- 5. UPLOAD FOTO SIGN NC VIEW (DENGAN TAMPILAN NAMA PART & PART NO) -->
+    <!-- 5. UPLOAD FOTO SIGN NC VIEW -->
     <div id="view-upload-sign" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -544,7 +548,16 @@
 
         <div class="form-group mb-3">
           <label>Ambil Foto / Pilih File Foto Sign NC *:</label>
-          <input type="file" id="sign-nc-file" accept="image/*" onchange="previewSignNcPhoto(this)">
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary flex-fill fw-bold" onclick="triggerSignNcCamera()">
+              📷 Kamera Utama
+            </button>
+            <button type="button" class="btn btn-outline-secondary flex-fill fw-bold" onclick="triggerSignNcGallery()">
+              🖼️ Pilih Galeri
+            </button>
+          </div>
+          <input type="file" id="sign-nc-file-cam" accept="image/*" capture="environment" style="display:none;" onchange="previewSignNcPhoto(this)">
+          <input type="file" id="sign-nc-file-gal" accept="image/*" style="display:none;" onchange="previewSignNcPhoto(this)">
         </div>
 
         <div id="sign-nc-preview-container" style="display:none; text-align:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
@@ -556,7 +569,7 @@
       </div>
     </div>
 
-    <!-- 6. UPLOAD FOTO SCRAP VIEW (DENGAN INFO PART & OFFLINE QUEUE) -->
+    <!-- 6. UPLOAD FOTO SCRAP VIEW -->
     <div id="view-upload-scrap" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -586,8 +599,17 @@
         </div>
 
         <div class="form-group mb-3">
-          <label>Pilih Foto Scrap (Bisa Pilih Banyak Foto / Kamera) *:</label>
-          <input type="file" id="scrap-file-input" accept="image/*" multiple onchange="previewScrapPhotos(this)">
+          <label>Pilih Foto Scrap (Kamera / Galeri Multi-Foto) *:</label>
+          <div class="d-flex gap-2 mb-2">
+            <button type="button" class="btn btn-outline-danger flex-fill fw-bold" onclick="triggerScrapCamera()">
+              📷 Potret Kamera
+            </button>
+            <button type="button" class="btn btn-outline-secondary flex-fill fw-bold" onclick="triggerScrapGallery()">
+              🖼️ Pilih Galeri (Multi)
+            </button>
+          </div>
+          <input type="file" id="scrap-file-cam" accept="image/*" capture="environment" style="display:none;" onchange="appendScrapPhotos(this)">
+          <input type="file" id="scrap-file-gal" accept="image/*" multiple style="display:none;" onchange="appendScrapPhotos(this)">
         </div>
 
         <div id="scrap-preview-container" style="display:none; text-align:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
@@ -706,6 +728,7 @@
   let signNcSearchTimeout = null;
   let scrapSearchTimeout = null;
   let globalStockData = [];
+  let cachedCaseSummaryData = null;
   let currentPrintData = null;
   let signNcBase64 = '';
   let scrapBase64Array = [];
@@ -796,7 +819,6 @@
     updateBatchNumberFromControls();
     checkLogin();
 
-    // MULAI WORKER ANTREAN OFFLINE UNTUK FOTO SCRAP
     updateScrapQueueBadge();
     processScrapQueue();
     setInterval(processScrapQueue, 8000);
@@ -1382,7 +1404,7 @@
       document.getElementById('tab-stock-cases').classList.add('active');
       document.getElementById('subview-stock-main').style.display = 'none';
       document.getElementById('subview-stock-cases').style.display = 'block';
-      loadCaseSummaryData();
+      loadCaseSummaryData(false); // Ambil dari cache, tidak re-fetch otomatis
     } else {
       document.getElementById('tab-stock-cases').classList.remove('active');
       document.getElementById('tab-stock-main').classList.add('active');
@@ -1404,9 +1426,25 @@
     });
   }
 
+  function filterStockData() {
+    const query = (document.getElementById('stock-search-input').value || '').toLowerCase().trim();
+    if (!query) {
+      renderStockTable(globalStockData);
+      return;
+    }
+    const filtered = globalStockData.filter(item => {
+      return (item.ncpCode && item.ncpCode.toLowerCase().includes(query)) ||
+             (item.partNo && item.partNo.toLowerCase().includes(query)) ||
+             (item.partName && item.partName.toLowerCase().includes(query)) ||
+             (item.batchNo && item.batchNo.toLowerCase().includes(query)) ||
+             (item.area && item.area.toLowerCase().includes(query));
+    });
+    renderStockTable(filtered);
+  }
+
   function renderStockTable(list) {
     if (!list || list.length === 0) {
-      document.getElementById('stock-list-area').innerHTML = '<div style="font-size:12px; color:#64748b; padding:12px 0; text-align:center;">Data stok kosong.</div>';
+      document.getElementById('stock-list-area').innerHTML = '<div style="font-size:12px; color:#64748b; padding:12px 0; text-align:center;">Data stok tidak ditemukan / kosong.</div>';
       return;
     }
 
@@ -1436,28 +1474,58 @@
     document.getElementById('stock-list-area').innerHTML = html;
   }
 
-  function loadCaseSummaryData() {
+  function loadCaseSummaryData(forceRefresh = false) {
+    if (!forceRefresh && cachedCaseSummaryData) {
+      renderCaseSummaryData(cachedCaseSummaryData);
+      return;
+    }
+
     document.getElementById('case-summary-list-area').innerHTML = '<i>Memuat data case location & menyinkronkan spreadsheet...</i>';
     callBackend('getCaseSummaryData', {}, function(res) {
       if (!res.success) {
         document.getElementById('case-summary-list-area').innerHTML = 'Gagal memuat data Case.';
         return;
       }
+      cachedCaseSummaryData = res;
+      renderCaseSummaryData(res);
+    });
+  }
 
-      if (!res.cases || res.cases.length === 0) {
-        document.getElementById('case-summary-list-area').innerHTML = '<div style="text-align:center; padding:15px; color:#64748b;">Tidak ada barang di Case saat ini.</div>';
-        return;
+  function renderCaseSummaryData(res) {
+    if (!res.cases || res.cases.length === 0) {
+      document.getElementById('case-summary-list-area').innerHTML = '<div style="text-align:center; padding:15px; color:#64748b;">Tidak ada barang di Case saat ini.</div>';
+      return;
+    }
+
+    const query = (document.getElementById('case-search-input')?.value || '').toLowerCase().trim();
+
+    let html = `<div class="mb-3 p-2 bg-light border rounded text-center">
+      <strong style="font-size:12px;">Total Keseluruhan Dalam Case: ${res.grandTotalNC} NC Case (${res.grandTotalQty} Pcs)</strong>
+    </div>`;
+
+    let visibleCasesCount = 0;
+
+    res.cases.forEach(c => {
+      let filteredItems = c.items;
+      if (query) {
+        filteredItems = c.items.filter(item => {
+          return (item.ncpCode && item.ncpCode.toLowerCase().includes(query)) ||
+                 (item.partNo && item.partNo.toLowerCase().includes(query)) ||
+                 (item.partName && item.partName.toLowerCase().includes(query)) ||
+                 (item.batchNo && item.batchNo.toLowerCase().includes(query)) ||
+                 (item.defect && item.defect.toLowerCase().includes(query)) ||
+                 (c.caseName && c.caseName.toLowerCase().includes(query));
+        });
       }
 
-      let html = `<div class="mb-3 p-2 bg-light border rounded text-center">
-        <strong style="font-size:12px;">Total Keseluruhan Dalam Case: ${res.grandTotalNC} NC Case (${res.grandTotalQty} Pcs)</strong>
-      </div>`;
+      if (filteredItems.length > 0) {
+        visibleCasesCount++;
+        let subTotalQty = filteredItems.reduce((acc, item) => acc + item.qty, 0);
 
-      res.cases.forEach(c => {
         html += `<div class="card mb-3 border-secondary shadow-sm">
           <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             <span class="fw-bold">📍 Location / Case: ${c.caseName}</span>
-            <span class="badge bg-info text-dark">${c.totalCases} Cases | Total Qty: ${c.totalQty} Pcs</span>
+            <span class="badge bg-info text-dark">${filteredItems.length} Cases | Total Qty: ${subTotalQty} Pcs</span>
           </div>
           <div class="card-body p-2" style="overflow-x:auto;">
             <table class="table table-sm table-bordered mb-0" style="font-size:11px;">
@@ -1472,7 +1540,7 @@
               </thead>
               <tbody>`;
         
-        c.items.forEach(item => {
+        filteredItems.forEach(item => {
           html += `<tr>
             <td><strong>${item.ncpCode}</strong></td>
             <td>${item.partNo}<br><small class="text-muted">${item.partName}</small></td>
@@ -1483,10 +1551,20 @@
         });
 
         html += `</tbody></table></div></div>`;
-      });
-
-      document.getElementById('case-summary-list-area').innerHTML = html;
+      }
     });
+
+    if (visibleCasesCount === 0 && query) {
+      html = `<div style="text-align:center; padding:15px; color:#64748b;">Tidak ditemukan data yang cocok dengan pencarian "${query}".</div>`;
+    }
+
+    document.getElementById('case-summary-list-area').innerHTML = html;
+  }
+
+  function filterCaseSummaryData() {
+    if (cachedCaseSummaryData) {
+      renderCaseSummaryData(cachedCaseSummaryData);
+    }
   }
 
   /* ------------------- 3. PENCARIAN BATCH NG ------------------- */
@@ -1820,7 +1898,15 @@
     setTimeout(function() { window.print(); }, 300);
   }
 
-  /* ------------------- 5. UPLOAD FOTO SIGN NC DENGAN INFO PART ------------------- */
+  /* ------------------- 5. UPLOAD FOTO SIGN NC DENGAN KAMERA / GALERI ------------------- */
+  function triggerSignNcCamera() {
+    document.getElementById('sign-nc-file-cam').click();
+  }
+
+  function triggerSignNcGallery() {
+    document.getElementById('sign-nc-file-gal').click();
+  }
+
   function handleSignNcSearchInput(val) {
     const query = val.trim();
     if (query.length < 2) { 
@@ -1894,7 +1980,8 @@
       if (res.success) {
         showAlert(res.message, 'Berhasil', '✅');
         document.getElementById('sign-nc-search-ncp').value = '';
-        document.getElementById('sign-nc-file').value = '';
+        document.getElementById('sign-nc-file-cam').value = '';
+        document.getElementById('sign-nc-file-gal').value = '';
         document.getElementById('sign-nc-preview-container').style.display = 'none';
         document.getElementById('sign-nc-part-info').style.display = 'none';
         signNcBase64 = '';
@@ -1904,7 +1991,15 @@
     });
   }
 
-  /* ------------------- 6. UPLOAD FOTO SCRAP (INFO PART & OFFLINE QUEUE) ------------------- */
+  /* ------------------- 6. UPLOAD FOTO SCRAP DENGAN KAMERA / GALERI MULTI-FOTO ------------------- */
+  function triggerScrapCamera() {
+    document.getElementById('scrap-file-cam').click();
+  }
+
+  function triggerScrapGallery() {
+    document.getElementById('scrap-file-gal').click();
+  }
+
   function saveScrapBatchPersist(val) {
     if (val) {
       localStorage.setItem('last_scrap_batch', val.trim());
@@ -1959,33 +2054,42 @@
     });
   }
 
-  function previewScrapPhotos(input) {
-    scrapBase64Array = [];
+  function appendScrapPhotos(input) {
+    if (input.files && input.files.length > 0) {
+      let filesArr = Array.from(input.files);
+      let loadedCount = 0;
+
+      filesArr.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          scrapBase64Array.push(e.target.result);
+          loadedCount++;
+
+          if (loadedCount === filesArr.length) {
+            renderScrapGallery();
+            input.value = '';
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  function renderScrapGallery() {
     const container = document.getElementById('scrap-preview-container');
     const gallery = document.getElementById('scrap-thumb-gallery');
     const countLabel = document.getElementById('scrap-photo-count');
     gallery.innerHTML = '';
 
-    if (input.files && input.files.length > 0) {
-      let loadedCount = 0;
-      Array.from(input.files).forEach((file, idx) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          scrapBase64Array.push(e.target.result);
-          
-          const thumbDiv = document.createElement('div');
-          thumbDiv.className = 'scrap-photo-thumb';
-          thumbDiv.innerHTML = `<img src="${e.target.result}"><button type="button" class="scrap-photo-remove" onclick="removeScrapPhoto(${idx})">✕</button>`;
-          gallery.appendChild(thumbDiv);
-
-          loadedCount++;
-          if (loadedCount === input.files.length) {
-            countLabel.innerText = `Total ${scrapBase64Array.length} foto dipilih`;
-            container.style.display = 'block';
-          }
-        };
-        reader.readAsDataURL(file);
+    if (scrapBase64Array.length > 0) {
+      scrapBase64Array.forEach((b64, idx) => {
+        const thumbDiv = document.createElement('div');
+        thumbDiv.className = 'scrap-photo-thumb';
+        thumbDiv.innerHTML = `<img src="${b64}"><button type="button" class="scrap-photo-remove" onclick="removeScrapPhoto(${idx})">✕</button>`;
+        gallery.appendChild(thumbDiv);
       });
+      countLabel.innerText = `Total ${scrapBase64Array.length} foto dipilih`;
+      container.style.display = 'block';
     } else {
       container.style.display = 'none';
     }
@@ -1993,22 +2097,10 @@
 
   function removeScrapPhoto(index) {
     scrapBase64Array.splice(index, 1);
-    const gallery = document.getElementById('scrap-thumb-gallery');
-    gallery.innerHTML = '';
-    scrapBase64Array.forEach((b64, idx) => {
-      const thumbDiv = document.createElement('div');
-      thumbDiv.className = 'scrap-photo-thumb';
-      thumbDiv.innerHTML = `<img src="${b64}"><button type="button" class="scrap-photo-remove" onclick="removeScrapPhoto(${idx})">✕</button>`;
-      gallery.appendChild(thumbDiv);
-    });
-    
-    document.getElementById('scrap-photo-count').innerText = `Total ${scrapBase64Array.length} foto dipilih`;
-    if (scrapBase64Array.length === 0) {
-      document.getElementById('scrap-preview-container').style.display = 'none';
-    }
+    renderScrapGallery();
   }
 
-  /* ------------------- SISTEM ANTREAN OFFLINE & FLOATING BADGE SCRAP (< 0.5 DETIK) ------------------- */
+  /* ------------------- ANTREAN OFFLINE & FLOATING BADGE SCRAP ------------------- */
   function getScrapQueue() {
     try {
       return JSON.parse(localStorage.getItem('scrap_upload_queue')) || [];
@@ -2072,21 +2164,19 @@
       department: user.dept
     };
 
-    // 1. MASUKKAN KE ANTREAN LOCALSTORAGE
     const queue = getScrapQueue();
     queue.push(taskItem);
     setScrapQueue(queue);
 
-    // 2. BERSIHKAN FORM DENGAN KILAT (< 0.5 DETIK)
     document.getElementById('scrap-search-ncp').value = '';
-    document.getElementById('scrap-file-input').value = '';
+    document.getElementById('scrap-file-cam').value = '';
+    document.getElementById('scrap-file-gal').value = '';
     document.getElementById('scrap-preview-container').style.display = 'none';
     document.getElementById('scrap-part-info').style.display = 'none';
     scrapBase64Array = [];
 
     showAlert("Foto tersimpan di antrean & langsung dikirim di latar belakang!", "Antrean Berhasil", "⚡");
 
-    // 3. JALANKAN PROSES PENGIRIMAN LATAR BELAKANG
     processScrapQueue();
   }
 
@@ -2103,18 +2193,15 @@
     callBackend('uploadFotoScrap', currentTask, function(res) {
       isProcessingScrapQueue = false;
       if (res.success) {
-        // JIKA BERHASIL, HAPUS DARI ANTREAN
         const updatedQueue = getScrapQueue().filter(q => q.id !== currentTask.id);
         setScrapQueue(updatedQueue);
         processScrapQueue();
       } else {
-        // JIKA GAGAL DARI SERVER, COBA LAGI NANTI
         setTimeout(processScrapQueue, 10000);
       }
     }, function(err) {
       isProcessingScrapQueue = false;
       updateScrapQueueBadge();
-      // JIKA GAGAL JARINGAN, TUNGGU & RETRY BERKALA
       setTimeout(processScrapQueue, 10000);
     });
   }
