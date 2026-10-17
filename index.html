@@ -65,7 +65,6 @@
     .badge-status { padding: 4px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; white-space: nowrap; }
     .badge-in { background: #dcfce7; color: #15803d; }
 
-    /* FORMAT TAG MERAH A6 - TERPERBAIKI DENGAN LOGO GEELY & BORDER ISI LENGKAP */
     .red-tag-container { width: 100%; max-width: 98mm; margin: 0 auto 15px auto; border: 2px solid #b91c1c; background: #ffffff; font-family: Arial, sans-serif; color: #000; box-sizing: border-box; page-break-after: always; }
     .red-tag-header { background: #b91c1c; color: white; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; }
     .red-tag-title-cn { font-size: 12px; font-weight: bold; }
@@ -97,6 +96,26 @@
     .scrap-photo-thumb { position: relative; display: inline-block; margin: 4px; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
     .scrap-photo-thumb img { width: 75px; height: 75px; object-fit: cover; }
     .scrap-photo-remove { position: absolute; top: 2px; right: 2px; background: rgba(220, 38, 38, 0.85); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+    /* FLOATING BADGE OFFLINE QUEUE */
+    .floating-badge {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 99999;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #38bdf8;
+      transition: all 0.3s ease;
+    }
 
     @page { size: 105mm 148mm portrait; margin: 0mm; }
     @media print {
@@ -266,7 +285,6 @@
           </button>
         </div>
 
-        <!-- GRAFIK & PIE CHART KUMULATIF MINGGUAN (ENGLISH) -->
         <div class="chart-report-card mb-4">
           <h6 class="fw-bold text-primary mb-3"><i class="bi bi-calendar-week"></i> Weekly Cumulative NC & Top NG Parts Report (Weekly)</h6>
           <div class="row">
@@ -419,7 +437,7 @@
       </div>
     </div>
 
-    <!-- 4. PRINT TAG MERAH VIEW (RESTORED FORMAT A6 & LOGO GEELY PERSIS) -->
+    <!-- 4. PRINT TAG MERAH VIEW -->
     <div id="view-print-tag" style="display:none;">
       <div class="page-header no-print">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -500,7 +518,7 @@
       </div>
     </div>
 
-    <!-- 5. UPLOAD FOTO SIGN NC VIEW -->
+    <!-- 5. UPLOAD FOTO SIGN NC VIEW (DENGAN TAMPILAN NAMA PART & PART NO) -->
     <div id="view-upload-sign" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -512,10 +530,16 @@
           📸 Live Scan QR / Barcode NCP
         </button>
 
-        <div class="form-group mb-3">
+        <div class="form-group mb-2">
           <label>Cari / Ketik Nomor NCP (5 Angka Terakhir) *:</label>
           <input type="text" id="sign-nc-search-ncp" placeholder="Contoh: 20626..." style="font-weight:bold; color:#0284c7;" oninput="handleSignNcSearchInput(this.value)" autocomplete="off">
           <div id="sign-nc-suggestion-box" class="suggestion-list"></div>
+        </div>
+
+        <!-- BOX INFO NAMA PART & PART NO -->
+        <div id="sign-nc-part-info" class="p-2 border rounded bg-light mb-3" style="display:none; font-size:12px; border-left: 4px solid #0284c7 !important;">
+          <div class="text-primary fw-bold" id="sign-nc-part-no">Part No: -</div>
+          <div class="text-dark font-monospace" id="sign-nc-part-name">Part Name: -</div>
         </div>
 
         <div class="form-group mb-3">
@@ -532,7 +556,7 @@
       </div>
     </div>
 
-    <!-- 6. UPLOAD FOTO SCRAP PER BATCH VIEW (MULTI PHOTO & AUTO SCAN OUT) -->
+    <!-- 6. UPLOAD FOTO SCRAP VIEW (DENGAN INFO PART & OFFLINE QUEUE) -->
     <div id="view-upload-scrap" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -549,10 +573,16 @@
           📸 Live Scan QR NCP Unit
         </button>
 
-        <div class="form-group mb-3">
+        <div class="form-group mb-2">
           <label>Atau Ketik / Cari Nomor NCP (5 Angka Terakhir) *:</label>
           <input type="text" id="scrap-search-ncp" placeholder="Contoh: 20626..." style="font-weight:bold;" oninput="handleScrapSearchInput(this.value)" autocomplete="off">
           <div id="scrap-suggestion-box" class="suggestion-list"></div>
+        </div>
+
+        <!-- BOX INFO NAMA PART & PART NO SCRAP -->
+        <div id="scrap-part-info" class="p-2 border rounded bg-light mb-3" style="display:none; font-size:12px; border-left: 4px solid #dc2626 !important;">
+          <div class="text-danger fw-bold" id="scrap-part-no">Part No: -</div>
+          <div class="text-dark font-monospace" id="scrap-part-name">Part Name: -</div>
         </div>
 
         <div class="form-group mb-3">
@@ -566,12 +596,18 @@
         </div>
 
         <button type="button" id="btn-submit-scrap" class="btn-primary-custom" style="background:#b91c1c;" onclick="submitUploadScrap()">
-          ⚡ Upload Foto Scrap & Auto Scan Out
+          ⚡ Simpan Foto Scrap (Latar Belakang)
         </button>
       </div>
     </div>
 
   </div>
+</div>
+
+<!-- FLOATING BADGE QUEUE OFFLINE -->
+<div id="floating-queue-badge" class="floating-badge" style="display:none;">
+  <span id="badge-icon">🔄</span>
+  <span id="badge-text">Mengirim (0)...</span>
 </div>
 
 <!-- SCANNER MODAL DIALOG -->
@@ -620,7 +656,6 @@
         </tr>
       </table>
 
-      <!-- STOCK IN LOKASI WAJIB -->
       <div class="form-group" id="group-inv-area">
         <label id="lbl-inv-area">Area / Location 存放位置 * (WAJIB DIISI)</label>
         <input type="text" id="inv-area" placeholder="e.g. Rack A-01 / Area Karantina" style="font-weight:bold; border:2px solid #0284c7;">
@@ -684,6 +719,7 @@
   let chartWeeklyTrendInstance = null;
 
   let cachedNcpListDateShift = [];
+  let isProcessingScrapQueue = false;
 
   function callBackend(actionName, payload, onSuccess, onFailure) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -759,6 +795,12 @@
 
     updateBatchNumberFromControls();
     checkLogin();
+
+    // MULAI WORKER ANTREAN OFFLINE UNTUK FOTO SCRAP
+    updateScrapQueueBadge();
+    processScrapQueue();
+    setInterval(processScrapQueue, 8000);
+    window.addEventListener('online', processScrapQueue);
   });
 
   function showAlert(msg, title = 'Informasi', icon = '💡') {
@@ -871,7 +913,6 @@
     Chart.register(ChartDataLabels);
     const titleText = `IQC DAILY NC REPORT - ${data.dateStr}`;
 
-    // Chart Status Harian
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     if (chartStatusInstance) chartStatusInstance.destroy();
 
@@ -898,7 +939,6 @@
       plugins: [whiteBackgroundPlugin]
     });
 
-    // Chart Kategori Harian
     const ctxCat = document.getElementById('chartCategory').getContext('2d');
     if (chartCategoryInstance) chartCategoryInstance.destroy();
 
@@ -925,7 +965,6 @@
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
 
-    // Chart Top Parts Harian
     const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
 
@@ -948,11 +987,9 @@
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
 
-    // CHART KUMULATIF MINGGUAN (ENGLISH FORMAT)
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
 
-      // 1. Weekly Category Pie Chart
       const ctxWCat = document.getElementById('chartWeeklyCategory').getContext('2d');
       if (chartWeeklyCategoryInstance) chartWeeklyCategoryInstance.destroy();
 
@@ -975,7 +1012,6 @@
         plugins: [whiteBackgroundPlugin]
       });
 
-      // 2. Weekly Top Rejected Parts Bar Chart
       const ctxWTop = document.getElementById('chartWeeklyTopParts').getContext('2d');
       if (chartWeeklyTopPartsInstance) chartWeeklyTopPartsInstance.destroy();
 
@@ -998,7 +1034,6 @@
         plugins: [whiteBackgroundPlugin]
       });
 
-      // 3. Weekly Daily Trend Chart
       const ctxWTrend = document.getElementById('chartWeeklyTrend').getContext('2d');
       if (chartWeeklyTrendInstance) chartWeeklyTrendInstance.destroy();
 
@@ -1160,7 +1195,6 @@
     document.getElementById('manual-ncp').value = '';
     hideSuggestions();
 
-    // STOCK IN WAJIB LOKASI!
     if (currentTxType === 'IN') {
       document.getElementById('group-inv-area').style.display = 'block';
       document.getElementById('lbl-inv-area').innerText = 'Area / Location 存放位置 * (WAJIB DIISI UNTUK STOCK IN)';
@@ -1188,6 +1222,7 @@
     startLiveScanner((decodedCode) => {
       closeScanner();
       document.getElementById('sign-nc-search-ncp').value = decodedCode.trim();
+      fetchNcpPartInfoSignNC(decodedCode.trim());
       showAlert("Kode NCP '" + decodedCode + "' berhasil ter-scan!", "Scan Berhasil", "✅");
     });
   }
@@ -1203,6 +1238,7 @@
     startLiveScanner((decodedCode) => {
       closeScanner();
       document.getElementById('scrap-search-ncp').value = decodedCode.trim();
+      fetchNcpPartInfoScrap(decodedCode.trim());
       showAlert("Kode NCP '" + decodedCode + "' dipilih!", "Scan Berhasil", "✅");
     });
   }
@@ -1401,7 +1437,7 @@
   }
 
   function loadCaseSummaryData() {
-    document.getElementById('case-summary-list-area').innerHTML = '<i>Memuat data case location...</i>';
+    document.getElementById('case-summary-list-area').innerHTML = '<i>Memuat data case location & menyinkronkan spreadsheet...</i>';
     callBackend('getCaseSummaryData', {}, function(res) {
       if (!res.success) {
         document.getElementById('case-summary-list-area').innerHTML = 'Gagal memuat data Case.';
@@ -1453,7 +1489,7 @@
     });
   }
 
-  /* ------------------- 3. PENCARIAN BATCH NG (KODE TENGAH EDITABLE) ------------------- */
+  /* ------------------- 3. PENCARIAN BATCH NG ------------------- */
   function adjustBatchNumber(delta) {
     let inp = document.getElementById('batch-num-suffix');
     let val = parseInt(inp.value) || 0;
@@ -1508,7 +1544,7 @@
     });
   }
 
-  /* ------------------- 4. PRINT TAG MERAH (RESTORED PERSIS 100% FORMAT PRINT TAG NG.TXT) ------------------- */
+  /* ------------------- 4. PRINT TAG MERAH ------------------- */
   function loadNcpListByDateShift() {
     const tgl = document.getElementById('tag-filter-date').value;
     const shift = document.getElementById('tag-filter-shift').value;
@@ -1642,7 +1678,6 @@
     }, 100);
   }
 
-  // BUILDER TAG MERAH A6 - TERHUBUNG KEMBALI PERSIS DENGAN FORMAT LOGO GEELY SVG DARI FORMAT PRINT TAG NG.TXT
   function buildTagHtml(data, qtyBannerText, preparedByVal, dateVal) {
     return `
     <div class="red-tag-container">
@@ -1785,10 +1820,14 @@
     setTimeout(function() { window.print(); }, 300);
   }
 
-  /* ------------------- 5. UPLOAD FOTO SIGN NC ------------------- */
+  /* ------------------- 5. UPLOAD FOTO SIGN NC DENGAN INFO PART ------------------- */
   function handleSignNcSearchInput(val) {
     const query = val.trim();
-    if (query.length < 2) { hideSignNcSuggestions(); return; }
+    if (query.length < 2) { 
+      hideSignNcSuggestions(); 
+      document.getElementById('sign-nc-part-info').style.display = 'none';
+      return; 
+    }
     clearTimeout(signNcSearchTimeout);
     signNcSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showSignNcSuggestions);
@@ -1802,10 +1841,11 @@
     list.forEach(item => {
       const div = document.createElement('div');
       div.className = 'suggestion-item';
-      div.innerHTML = `<strong>${item.ncpCode}</strong> <small>${item.partNo} ${item.batchNo ? '| Batch: ' + item.batchNo : ''} - ${item.partName}</small>`;
+      div.innerHTML = `<strong>${item.ncpCode}</strong> <small>${item.partNo} - ${item.partName}</small>`;
       div.onclick = function() {
         document.getElementById('sign-nc-search-ncp').value = item.ncpCode;
         hideSignNcSuggestions();
+        fetchNcpPartInfoSignNC(item.ncpCode);
       };
       sugBox.appendChild(div);
     });
@@ -1815,6 +1855,18 @@
   function hideSignNcSuggestions() {
     const sugBox = document.getElementById('sign-nc-suggestion-box');
     if (sugBox) sugBox.style.display = 'none';
+  }
+
+  function fetchNcpPartInfoSignNC(ncpCode) {
+    callBackend('cariDataNCP', { ncpCode: ncpCode }, function(res) {
+      if (res.success) {
+        document.getElementById('sign-nc-part-no').innerText = "Part No: " + res.partNo;
+        document.getElementById('sign-nc-part-name').innerText = "Part Name: " + res.partName;
+        document.getElementById('sign-nc-part-info').style.display = 'block';
+      } else {
+        document.getElementById('sign-nc-part-info').style.display = 'none';
+      }
+    });
   }
 
   function previewSignNcPhoto(input) {
@@ -1844,6 +1896,7 @@
         document.getElementById('sign-nc-search-ncp').value = '';
         document.getElementById('sign-nc-file').value = '';
         document.getElementById('sign-nc-preview-container').style.display = 'none';
+        document.getElementById('sign-nc-part-info').style.display = 'none';
         signNcBase64 = '';
       } else {
         showAlert(res.message, 'Gagal', '❌');
@@ -1851,7 +1904,7 @@
     });
   }
 
-  /* ------------------- 6. UPLOAD MULTI FOTO SCRAP & AUTO SCAN OUT ------------------- */
+  /* ------------------- 6. UPLOAD FOTO SCRAP (INFO PART & OFFLINE QUEUE) ------------------- */
   function saveScrapBatchPersist(val) {
     if (val) {
       localStorage.setItem('last_scrap_batch', val.trim());
@@ -1860,7 +1913,11 @@
 
   function handleScrapSearchInput(val) {
     const query = val.trim();
-    if (query.length < 2) { hideScrapSuggestions(); return; }
+    if (query.length < 2) { 
+      hideScrapSuggestions(); 
+      document.getElementById('scrap-part-info').style.display = 'none';
+      return; 
+    }
     clearTimeout(scrapSearchTimeout);
     scrapSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showScrapSuggestions);
@@ -1878,6 +1935,7 @@
       div.onclick = function() {
         document.getElementById('scrap-search-ncp').value = item.ncpCode;
         hideScrapSuggestions();
+        fetchNcpPartInfoScrap(item.ncpCode);
       };
       sugBox.appendChild(div);
     });
@@ -1887,6 +1945,18 @@
   function hideScrapSuggestions() {
     const sugBox = document.getElementById('scrap-suggestion-box');
     if (sugBox) sugBox.style.display = 'none';
+  }
+
+  function fetchNcpPartInfoScrap(ncpCode) {
+    callBackend('cariDataNCP', { ncpCode: ncpCode }, function(res) {
+      if (res.success) {
+        document.getElementById('scrap-part-no').innerText = "Part No: " + res.partNo;
+        document.getElementById('scrap-part-name').innerText = "Part Name: " + res.partName;
+        document.getElementById('scrap-part-info').style.display = 'block';
+      } else {
+        document.getElementById('scrap-part-info').style.display = 'none';
+      }
+    });
   }
 
   function previewScrapPhotos(input) {
@@ -1938,6 +2008,50 @@
     }
   }
 
+  /* ------------------- SISTEM ANTREAN OFFLINE & FLOATING BADGE SCRAP (< 0.5 DETIK) ------------------- */
+  function getScrapQueue() {
+    try {
+      return JSON.parse(localStorage.getItem('scrap_upload_queue')) || [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function setScrapQueue(queue) {
+    localStorage.setItem('scrap_upload_queue', JSON.stringify(queue));
+    updateScrapQueueBadge();
+  }
+
+  function updateScrapQueueBadge() {
+    const queue = getScrapQueue();
+    const badge = document.getElementById('floating-queue-badge');
+    const icon = document.getElementById('badge-icon');
+    const text = document.getElementById('badge-text');
+
+    if (queue.length > 0) {
+      badge.style.display = 'flex';
+      if (isProcessingScrapQueue) {
+        icon.innerText = "🔄";
+        text.innerText = `Mengirim (${queue.length})...`;
+        badge.style.borderColor = "#38bdf8";
+      } else {
+        icon.innerText = "⏳";
+        text.innerText = `${queue.length} Pending`;
+        badge.style.borderColor = "#f59e0b";
+      }
+    } else {
+      badge.style.display = 'flex';
+      icon.innerText = "✅";
+      text.innerText = "Semua Tersimpan";
+      badge.style.borderColor = "#22c55e";
+      setTimeout(() => {
+        if (getScrapQueue().length === 0) {
+          badge.style.display = 'none';
+        }
+      }, 3000);
+    }
+  }
+
   function submitUploadScrap() {
     const scrapBatch = document.getElementById('scrap-batch-num').value.trim();
     const ncpCode = document.getElementById('scrap-search-ncp').value.trim();
@@ -1947,36 +2061,61 @@
     if (!scrapBase64Array || scrapBase64Array.length === 0) { showAlert("Pilih minimal 1 foto unit scrap terlebih dahulu!", "Peringatan", "⚠️"); return; }
 
     saveScrapBatchPersist(scrapBatch);
-
     const user = JSON.parse(localStorage.getItem('geely_ncp_user'));
-    const btn = document.getElementById('btn-submit-scrap');
-    btn.disabled = true;
-    btn.innerText = `⏳ Mengupload ${scrapBase64Array.length} Foto Scrap...`;
 
-    const payload = {
+    const taskItem = {
+      id: Date.now(),
       ncpCode: ncpCode,
       scrapBatch: scrapBatch,
-      base64DataList: scrapBase64Array,
+      base64DataList: [...scrapBase64Array],
       userName: user.name,
       department: user.dept
     };
 
-    callBackend('uploadFotoScrap', payload, function(res) {
-      btn.disabled = false;
-      btn.innerText = '⚡ Upload Foto Scrap & Auto Scan Out';
+    // 1. MASUKKAN KE ANTREAN LOCALSTORAGE
+    const queue = getScrapQueue();
+    queue.push(taskItem);
+    setScrapQueue(queue);
+
+    // 2. BERSIHKAN FORM DENGAN KILAT (< 0.5 DETIK)
+    document.getElementById('scrap-search-ncp').value = '';
+    document.getElementById('scrap-file-input').value = '';
+    document.getElementById('scrap-preview-container').style.display = 'none';
+    document.getElementById('scrap-part-info').style.display = 'none';
+    scrapBase64Array = [];
+
+    showAlert("Foto tersimpan di antrean & langsung dikirim di latar belakang!", "Antrean Berhasil", "⚡");
+
+    // 3. JALANKAN PROSES PENGIRIMAN LATAR BELAKANG
+    processScrapQueue();
+  }
+
+  function processScrapQueue() {
+    if (isProcessingScrapQueue) return;
+    const queue = getScrapQueue();
+    if (queue.length === 0) { updateScrapQueueBadge(); return; }
+
+    isProcessingScrapQueue = true;
+    updateScrapQueueBadge();
+
+    const currentTask = queue[0];
+
+    callBackend('uploadFotoScrap', currentTask, function(res) {
+      isProcessingScrapQueue = false;
       if (res.success) {
-        showAlert(res.message, "Upload Berhasil", "✅");
-        document.getElementById('scrap-search-ncp').value = '';
-        document.getElementById('scrap-file-input').value = '';
-        document.getElementById('scrap-preview-container').style.display = 'none';
-        scrapBase64Array = [];
+        // JIKA BERHASIL, HAPUS DARI ANTREAN
+        const updatedQueue = getScrapQueue().filter(q => q.id !== currentTask.id);
+        setScrapQueue(updatedQueue);
+        processScrapQueue();
       } else {
-        showAlert(res.message, "Gagal Upload", "❌");
+        // JIKA GAGAL DARI SERVER, COBA LAGI NANTI
+        setTimeout(processScrapQueue, 10000);
       }
     }, function(err) {
-      btn.disabled = false;
-      btn.innerText = '⚡ Upload Foto Scrap & Auto Scan Out';
-      showAlert("Server Error: " + err.message, "Error", "⚠️");
+      isProcessingScrapQueue = false;
+      updateScrapQueueBadge();
+      // JIKA GAGAL JARINGAN, TUNGGU & RETRY BERKALA
+      setTimeout(processScrapQueue, 10000);
     });
   }
 </script>
