@@ -950,7 +950,7 @@
   }
 
   /* ------------------- 1. IQC REPORT & KUMULATIF CHART ------------------- */
-/* ------------------- 1. IQC REPORT & KUMULATIF CHART (PRECISE FORMAT) ------------------- */
+  /* ------------------- 1. IQC REPORT & KUMULATIF CHART (PRECISE FORMAT) ------------------- */
   function genIqcReport() {
     const tgl = document.getElementById('iqc-date').value;
     const shift = document.getElementById('iqc-shift').value;
@@ -1335,7 +1335,6 @@
     link.download = fileName;
     link.click();
     showAlert('Gambar Weekly Report berhasil diunduh!', 'Berhasil', '📥');
-  }
   }
 
   function copyIqcText() {
