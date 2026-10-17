@@ -950,6 +950,7 @@
   }
 
   /* ------------------- 1. IQC REPORT & KUMULATIF CHART ------------------- */
+/* ------------------- 1. IQC REPORT & KUMULATIF CHART (PRECISE FORMAT) ------------------- */
   function genIqcReport() {
     const tgl = document.getElementById('iqc-date').value;
     const shift = document.getElementById('iqc-shift').value;
@@ -977,6 +978,7 @@
     Chart.register(ChartDataLabels);
     const titleText = `IQC DAILY NC REPORT - ${data.dateStr}`;
 
+    // 1. PIE CHART STATUS
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     if (chartStatusInstance) chartStatusInstance.destroy();
 
@@ -986,8 +988,8 @@
         labels: data.statusLabels,
         datasets: [{
           data: data.statusValues,
-          backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#64748b'],
-          offset: 6
+          backgroundColor: ['#0284c7', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#64748b'],
+          offset: 3
         }]
       },
       options: {
@@ -996,13 +998,19 @@
         plugins: {
           title: { display: true, text: titleText, color: '#0f172a', font: { size: 13, weight: 'bold' } },
           subtitle: { display: true, text: `NC Status (Total: ${data.totalNC} NC)`, font: { size: 11 } },
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
-          datalabels: { color: '#ffffff', font: { weight: 'bold', size: 11 }, formatter: (v) => v > 0 ? v + " NC" : '' }
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 10 } },
+          datalabels: {
+            color: '#ffffff',
+            font: { weight: 'bold', size: 11 },
+            display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
+            formatter: (v) => v + " NC"
+          }
         }
       },
       plugins: [whiteBackgroundPlugin]
     });
 
+    // 2. PIE CHART CATEGORY
     const ctxCat = document.getElementById('chartCategory').getContext('2d');
     if (chartCategoryInstance) chartCategoryInstance.destroy();
 
@@ -1012,8 +1020,8 @@
         labels: data.catLabels,
         datasets: [{
           data: data.catValues,
-          backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'],
-          offset: 6
+          backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'],
+          offset: 3
         }]
       },
       options: {
@@ -1022,13 +1030,19 @@
         plugins: {
           title: { display: true, text: titleText, color: '#0f172a', font: { size: 13, weight: 'bold' } },
           subtitle: { display: true, text: `NC Category (Total: ${data.totalNC} NC)`, font: { size: 11 } },
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
-          datalabels: { color: '#ffffff', font: { weight: 'bold', size: 11 }, formatter: (v) => v > 0 ? v + " NC" : '' }
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 10 } },
+          datalabels: {
+            color: '#ffffff',
+            font: { weight: 'bold', size: 11 },
+            display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
+            formatter: (v) => v + " NC"
+          }
         }
       },
-      plugins: [whiteBackgroundPlugin, watermarkPlugin]
+      plugins: [whiteBackgroundPlugin]
     });
 
+    // 3. BAR CHART TOP PARTS (DAILY HARIAN)
     const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
 
@@ -1036,31 +1050,52 @@
       type: 'bar',
       data: {
         labels: data.topPartLabels,
-        datasets: [{ label: 'Quantity (Pcs)', data: data.topPartValues, backgroundColor: '#3b82f6', borderRadius: 6 }]
+        datasets: [{
+          label: 'Quantity (Pcs)',
+          data: data.topPartValues,
+          backgroundColor: '#3b82f6',
+          borderRadius: 6
+        }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 25, bottom: 15 } },
         plugins: {
-          title: { display: true, text: `TOP ${data.topLimit} REJECTED PARTS - ${data.dateStr}`, color: '#0f172a', font: { size: 14, weight: 'bold' } },
+          title: { display: true, text: `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`, color: '#0f172a', font: { size: 14, weight: 'bold' } },
           legend: { display: false },
-          datalabels: { anchor: 'end', align: 'top', color: '#000000', font: { weight: 'bold', size: 11 }, formatter: (v) => v + " Pcs" }
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            offset: 2,
+            color: '#0f172a',
+            font: { weight: 'bold', size: 11 },
+            formatter: (v) => v > 0 ? v + " Pcs" : ''
+          }
         },
-        scales: { 
-          y: { beginAtZero: true }, 
-          x: { 
-            ticks: { 
-              autoSkip: false, 
-              maxRotation: 45, 
-              minRotation: 0, 
-              font: { size: 10, weight: '600' } 
-            } 
-          } 
+        scales: {
+          y: {
+            beginAtZero: true,
+            grace: '20%',
+            ticks: { font: { size: 10 } },
+            grid: { color: '#f1f5f9' }
+          },
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 30,
+              minRotation: 20,
+              font: { size: 9, weight: '500' },
+              color: '#475569'
+            },
+            grid: { display: false }
+          }
         }
       },
-      plugins: [whiteBackgroundPlugin, watermarkPlugin]
+      plugins: [whiteBackgroundPlugin]
     });
 
+    // 4. WEEKLY CHARTS
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
 
@@ -1071,16 +1106,24 @@
         type: 'pie',
         data: {
           labels: wData.catLabels,
-          datasets: [{ data: wData.catValues, backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] }]
+          datasets: [{
+            data: wData.catValues,
+            backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            title: { display: true, text: `WEEKLY CUMULATIVE NC CATEGORY (${wData.startDate} to ${wData.endDate})`, font: { size: 11, weight: 'bold' } },
+            title: { display: true, text: `WEEKLY CUMULATIVE NC CATEGORY (${wData.startDate} to ${wData.endDate})`, font: { size: 11, weight: 'bold' }, color: '#0f172a' },
             subtitle: { display: true, text: `Total Weekly NC: ${wData.totalWeeklyNC} Cases`, font: { size: 10 } },
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
-            datalabels: { color: '#ffffff', font: { weight: 'bold', size: 10 }, formatter: (v) => v > 0 ? v + " NC" : '' }
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }, padding: 8 } },
+            datalabels: {
+              color: '#ffffff',
+              font: { weight: 'bold', size: 10 },
+              display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
+              formatter: (v) => v + " NC"
+            }
           }
         },
         plugins: [whiteBackgroundPlugin]
@@ -1093,26 +1136,41 @@
         type: 'bar',
         data: {
           labels: wData.topPartLabels,
-          datasets: [{ label: 'Quantity (Pcs)', data: wData.topPartValues, backgroundColor: '#0284c7', borderRadius: 5 }]
+          datasets: [{
+            label: 'Quantity (Pcs)',
+            data: wData.topPartValues,
+            backgroundColor: '#0284c7',
+            borderRadius: 5
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: { padding: { top: 20, bottom: 10 } },
           plugins: {
-            title: { display: true, text: `WEEKLY TOP REJECTED PARTS BY QUANTITY`, font: { size: 11, weight: 'bold' } },
+            title: { display: true, text: `WEEKLY TOP REJECTED PARTS BY QUANTITY`, font: { size: 11, weight: 'bold' }, color: '#0f172a' },
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', color: '#000', font: { size: 9, weight: 'bold' }, formatter: (v) => v + " Pcs" }
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 2,
+              color: '#0f172a',
+              font: { size: 9, weight: 'bold' },
+              formatter: (v) => v > 0 ? v + " Pcs" : ''
+            }
           },
-          scales: { 
-            y: { beginAtZero: true }, 
-            x: { 
-              ticks: { 
-                autoSkip: false, 
-                maxRotation: 45, 
-                minRotation: 0, 
-                font: { size: 9, weight: '600' } 
-              } 
-            } 
+          scales: {
+            y: { beginAtZero: true, grace: '20%', ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } },
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 35,
+                font: { size: 8, weight: '500' },
+                color: '#475569'
+              },
+              grid: { display: false }
+            }
           }
         },
         plugins: [whiteBackgroundPlugin]
@@ -1126,29 +1184,54 @@
         data: {
           labels: wData.labels,
           datasets: [
-            { type: 'line', label: 'NC Cases', data: wData.ncTrend, borderColor: '#ef4444', backgroundColor: '#ef4444', borderWidth: 2, yAxisID: 'y' },
-            { type: 'bar', label: 'Qty Reject (Pcs)', data: wData.qtyTrend, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y1' }
+            {
+              type: 'line',
+              label: 'NC Cases',
+              data: wData.ncTrend,
+              borderColor: '#ef4444',
+              backgroundColor: '#ef4444',
+              borderWidth: 3,
+              pointRadius: 5,
+              pointBackgroundColor: '#ef4444',
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: 'Qty Reject (Pcs)',
+              data: wData.qtyTrend,
+              backgroundColor: '#3b82f6',
+              borderRadius: 6,
+              yAxisID: 'y1'
+            }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: { padding: { top: 20, bottom: 10 } },
           plugins: {
-            title: { display: true, text: `WEEKLY DAILY NC & REJECTION TREND`, font: { size: 12, weight: 'bold' } },
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
-            datalabels: { anchor: 'end', align: 'top', font: { size: 9, weight: 'bold' } }
+            title: { display: true, text: `WEEKLY DAILY NC & REJECTION TREND`, font: { size: 13, weight: 'bold' }, color: '#0f172a' },
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 2,
+              font: { size: 10, weight: 'bold' },
+              color: '#0f172a',
+              formatter: (v) => v > 0 ? v : ''
+            }
           },
           scales: {
-            y: { type: 'linear', display: true, position: 'left', beginAtZero: true },
-            y1: { type: 'linear', display: true, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+            y: { type: 'linear', display: true, position: 'left', beginAtZero: true, grace: '20%', grid: { color: '#e2e8f0' } },
+            y1: { type: 'linear', display: true, position: 'right', beginAtZero: true, grace: '20%', grid: { drawOnChartArea: false } }
           }
         },
-        plugins: [whiteBackgroundPlugin, watermarkPlugin]
+        plugins: [whiteBackgroundPlugin]
       });
     }
   }
 
-  // HELPER MENGGAMBAR CANVAS DENGAN MENJAGA ASPECT RATIO ASLI (MENCEGAH GRAFIK MELEOT/GEPENG)
+  /* ------------------- FUNGSI EKSPOR GAMBAR PERSISI SESUAI REFERENSI ------------------- */
   function drawCanvasKeepAspect(ctx, sourceCanvas, x, y, maxW, maxH) {
     if (!sourceCanvas) return;
     const srcRatio = sourceCanvas.width / sourceCanvas.height;
@@ -1163,38 +1246,63 @@
     ctx.drawImage(sourceCanvas, offsetX, offsetY, drawW, drawH);
   }
 
-  // FUNGSI UNDUH GAMBAR DENGAN CANAL 16:8 LANDSCAPE RENDER HIGH RESOLUTION (PERSIS 1600 X 800 PX TANPA Cacat)
+  function downloadChart(canvasId, fileName) {
+    const originalCanvas = document.getElementById(canvasId);
+    if (!originalCanvas) return;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = 1400;
+    exportCanvas.height = 750;
+    const ctx = exportCanvas.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    drawCanvasKeepAspect(ctx, originalCanvas, 20, 20, 1360, 690);
+
+    ctx.font = 'italic 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.7)';
+    ctx.textAlign = 'right';
+    ctx.fillText('Generated automatically by IQC Apps System', 1380, 735);
+
+    const link = document.createElement('a');
+    link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+    link.download = fileName;
+    link.click();
+    showAlert('Gambar Daily Top Parts berhasil diunduh!', 'Berhasil', '📥');
+  }
+
   function downloadCombinedPieCharts(fileName) {
     const canvas1 = document.getElementById('chartStatus');
     const canvas2 = document.getElementById('chartCategory');
     if (!canvas1 || !canvas2) return;
 
     const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 1600; 
-    exportCanvas.height = 800;
+    exportCanvas.width = 1200;
+    exportCanvas.height = 600;
     const ctx = exportCanvas.getContext('2d');
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
     ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('IQC DAILY NC DISTRIBUTION REPORT', 800, 50);
+    ctx.fillText('IQC DAILY NC DISTRIBUTION REPORT', 600, 35);
 
-    drawCanvasKeepAspect(ctx, canvas1, 40, 80, 740, 670);
-    drawCanvasKeepAspect(ctx, canvas2, 820, 80, 740, 670);
+    drawCanvasKeepAspect(ctx, canvas1, 20, 50, 560, 510);
+    drawCanvasKeepAspect(ctx, canvas2, 620, 50, 560, 510);
 
-    ctx.font = 'italic 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = 'rgba(100, 116, 139, 0.8)';
+    ctx.font = 'italic 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.7)';
     ctx.textAlign = 'right';
-    ctx.fillText('Generated automatically by IQC Apps System', 1570, 785);
+    ctx.fillText('Generated automatically by IQC Apps System', 1180, 585);
 
     const link = document.createElement('a');
     link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
     link.download = fileName;
     link.click();
-    showAlert('Gambar Gabungan Pie Chart Rasio 16:8 Landscape berhasil diunduh!', 'Berhasil', '📥');
+    showAlert('Gambar Gabungan Pie Chart berhasil diunduh!', 'Berhasil', '📥');
   }
 
   function downloadCombinedWeeklyCharts(fileName) {
@@ -1204,58 +1312,30 @@
     if (!canvas1 || !canvas2 || !canvas3) return;
 
     const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 1600; 
-    exportCanvas.height = 800;
+    exportCanvas.width = 1000;
+    exportCanvas.height = 1000;
     const ctx = exportCanvas.getContext('2d');
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('WEEKLY CUMULATIVE NC REPORT & TREND ANALYSIS', 800, 40);
+    // Grid Atas: Pie Chart (Kiri) & Top Parts Bar Chart (Kanan)
+    drawCanvasKeepAspect(ctx, canvas1, 15, 15, 475, 470);
+    drawCanvasKeepAspect(ctx, canvas2, 510, 15, 475, 470);
+    // Grid Bawah: Daily Trend Line & Bar Chart (Penuh)
+    drawCanvasKeepAspect(ctx, canvas3, 15, 500, 970, 470);
 
-    drawCanvasKeepAspect(ctx, canvas1, 40, 60, 740, 330);
-    drawCanvasKeepAspect(ctx, canvas2, 820, 60, 740, 330);
-    drawCanvasKeepAspect(ctx, canvas3, 40, 400, 1520, 360);
-
-    ctx.font = 'italic 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = 'rgba(100, 116, 139, 0.8)';
+    ctx.font = 'italic 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = 'rgba(100, 116, 139, 0.7)';
     ctx.textAlign = 'right';
-    ctx.fillText('Generated automatically by IQC Apps System', 1570, 785);
+    ctx.fillText('Generated automatically by IQC Apps System', 980, 988);
 
     const link = document.createElement('a');
     link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
     link.download = fileName;
     link.click();
-    showAlert('Gambar Report Kumulatif Mingguan (16:8 Landscape) berhasil diunduh!', 'Berhasil', '📥');
+    showAlert('Gambar Weekly Report berhasil diunduh!', 'Berhasil', '📥');
   }
-
-  function downloadChart(canvasId, fileName) {
-    let originalCanvas = document.getElementById(canvasId);
-    if (!originalCanvas) return;
-
-    const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 1600; 
-    exportCanvas.height = 800;
-    const ctx = exportCanvas.getContext('2d');
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-    drawCanvasKeepAspect(ctx, originalCanvas, 40, 40, 1520, 720);
-
-    ctx.font = 'italic 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = 'rgba(100, 116, 139, 0.8)';
-    ctx.textAlign = 'right';
-    ctx.fillText('Generated automatically by IQC Apps System', 1570, 785);
-
-    const link = document.createElement('a');
-    link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
-    link.download = fileName;
-    link.click();
-    showAlert('Gambar Chart Rasio 16:8 Landscape berhasil diunduh!', 'Unduh Berhasil', '📥');
   }
 
   function copyIqcText() {
