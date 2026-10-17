@@ -1042,73 +1042,52 @@
       plugins: [whiteBackgroundPlugin]
     });
 
-   // 3. BAR CHART TOP PARTS (PERSIS SESUAI GAMBAR REFERENSI)
-    const ctxTop = document.getElementById('chartTopParts').getContext('2d');
+   // 3. BAR CHART TOP PARTS BAGUS BAGUS ASU
+   const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
+
+    const topChartTitle = `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`;
 
     chartTopPartsInstance = new Chart(ctxTop, {
       type: 'bar',
       data: {
-        labels: data.topPartLabels, // Menampilkan Part No & Part Name 2 baris
+        labels: data.topPartLabels,
         datasets: [{
           label: 'Quantity (Pcs)',
           data: data.topPartValues,
           backgroundColor: '#3b82f6',
-          borderRadius: 8,
-          barPercentage: 0.75,
-          categoryPercentage: 0.85
+          borderRadius: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: {
-          padding: { top: 30, bottom: 15, left: 10, right: 10 }
-        },
+        layout: { padding: { top: 10, bottom: 18, left: 10, right: 10 } },
         plugins: {
           title: {
             display: true,
-            text: `TOP ${data.topLimit} REJECTED PARTS - ${data.dateStr}`,
-            color: '#1e293b',
-            font: { size: 16, weight: 'bold' },
-            padding: { bottom: 15 }
+            text: topChartTitle,
+            color: '#0f172a',
+            font: { size: 15, weight: 'bold' },
+            padding: { top: 5, bottom: 15 }
           },
           legend: { display: false },
           datalabels: {
             anchor: 'end',
             align: 'top',
-            offset: 4,
-            color: '#0f172a',
+            color: '#000000',
             font: { weight: 'bold', size: 11 },
-            formatter: (v) => v > 0 ? v + " Pcs" : ''
+            formatter: (val) => val + " Pcs"
           }
         },
         scales: {
-          y: {
-            beginAtZero: true,
-            grace: '10%',
-            ticks: {
-              stepSize: 1, // Membuat angka Y bertingkat 1
-              font: { size: 11 },
-              color: '#64748b'
-            },
-            grid: { color: '#e2e8f0' } // Garis horizontal
-          },
-          x: {
-            ticks: {
-              autoSkip: false,
-              maxRotation: 20, // Miring landai
-              minRotation: 15,
-              font: { size: 9, weight: '600' },
-              color: '#475569'
-            },
-            grid: { display: true, color: '#f1f5f9' } // Garis grid vertikal diaktifkan
-          }
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
         }
       },
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
-    
+  }
     // 4. WEEKLY CHARTS
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
