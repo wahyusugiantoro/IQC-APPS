@@ -1043,8 +1043,10 @@
     });
 
     // 3. BAR CHART TOP PARTS (DAILY HARIAN)
-    const ctxTop = document.getElementById('chartTopParts').getContext('2d');
+     const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
+
+    const topChartTitle = `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`;
 
     chartTopPartsInstance = new Chart(ctxTop, {
       type: 'bar',
@@ -1060,41 +1062,32 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 25, bottom: 15 } },
+        layout: { padding: { top: 10, bottom: 18, left: 10, right: 10 } },
         plugins: {
-          title: { display: true, text: `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`, color: '#0f172a', font: { size: 14, weight: 'bold' } },
+          title: {
+            display: true,
+            text: topChartTitle,
+            color: '#0f172a',
+            font: { size: 15, weight: 'bold' },
+            padding: { top: 5, bottom: 15 }
+          },
           legend: { display: false },
           datalabels: {
             anchor: 'end',
             align: 'top',
-            offset: 2,
-            color: '#0f172a',
+            color: '#000000',
             font: { weight: 'bold', size: 11 },
-            formatter: (v) => v > 0 ? v + " Pcs" : ''
+            formatter: (val) => val + " Pcs"
           }
         },
         scales: {
-          y: {
-            beginAtZero: true,
-            grace: '20%',
-            ticks: { font: { size: 10 } },
-            grid: { color: '#f1f5f9' }
-          },
-          x: {
-            ticks: {
-              autoSkip: false,
-              maxRotation: 30,
-              minRotation: 20,
-              font: { size: 9, weight: '500' },
-              color: '#475569'
-            },
-            grid: { display: false }
-          }
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
         }
       },
-      plugins: [whiteBackgroundPlugin]
+      plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
-
+  
     // 4. WEEKLY CHARTS
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
