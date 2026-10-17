@@ -1079,6 +1079,7 @@
       offset: 4,
       font: { weight: 'bold', size: 12 },
       formatter: (v) => v > 0 ? v + " Pcs" : ''
+      }
     }
   },
   scales: {
@@ -1281,7 +1282,6 @@
   link.click();
   showAlert('Gambar Daily Top Reject berhasil diunduh!', 'Berhasil', '📥');
   }
-}
 
   function downloadCombinedPieCharts(fileName) {
     const canvas1 = document.getElementById('chartStatus');
