@@ -1046,61 +1046,60 @@
      const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
 
-    const topChartTitle = `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`;
+const topChartTitle = `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`;
 
-    chartTopPartsInstance = new Chart(ctxTop, {
-      type: 'bar',
-      data: {
-        labels: data.topPartLabels,
-        datasets: [{
-          label: 'Quantity (Pcs)',
-          data: data.topPartValues,
-          backgroundColor: '#3b82f6',
-          borderRadius: 6
-        }]
-      },
-    options: {
-  responsive: true,
-  maintainAspectRatio: false, // Bebaskan rasio agar mengikuti lebar container
-  layout: {
-    padding: { top: 35, bottom: 15, left: 10, right: 10 }
+chartTopPartsInstance = new Chart(ctxTop, {
+  type: 'bar',
+  data: {
+    labels: data.topPartLabels,
+    datasets: [{
+      label: 'Quantity (Pcs)',
+      data: data.topPartValues,
+      backgroundColor: '#3b82f6',
+      borderRadius: 6
+    }]
   },
-  plugins: {
-    title: {
-      display: true,
-      text: `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`,
-      font: { size: 16, weight: 'bold' },
-      padding: { bottom: 20 }
+  options: {
+    responsive: true,
+    maintainAspectRatio: false, // Bebaskan rasio agar mengikuti lebar container
+    layout: {
+      padding: { top: 35, bottom: 15, left: 10, right: 10 }
     },
-    legend: { display: false },
-    datalabels: {
-      anchor: 'end',
-      align: 'top',
-      offset: 4,
-      font: { weight: 'bold', size: 12 },
-      formatter: (v) => v > 0 ? v + " Pcs" : ''
+    plugins: {
+      title: {
+        display: true,
+        text: `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`,
+        font: { size: 16, weight: 'bold' },
+        padding: { bottom: 20 }
+      },
+      legend: { display: false },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        offset: 4,
+        font: { weight: 'bold', size: 12 },
+        formatter: (v) => v > 0 ? v + " Pcs" : ''
+      }
+    }, // <-- Koma setelah plugins
+    scales: {
+      y: {
+        beginAtZero: true,
+        grace: '25%', // Memberi ruang atas agar teks angka tidak mepet ke judul
+        ticks: { font: { size: 11 } }
+      },
+      x: {
+        ticks: {
+          autoSkip: false,
+          maxRotation: 20, // Bikin kemiringan teks landai/mendatar
+          minRotation: 15,
+          font: { size: 10, weight: '500' }
+        },
+        grid: { display: false }
       }
     }
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      grace: '25%', // Memberi ruang atas agar teks angka tidak mepet ke judul
-      ticks: { font: { size: 11 } }
-    },
-    x: {
-      ticks: {
-        autoSkip: false,
-        maxRotation: 20, // Bikin kemiringan teks landai/mendatar
-        minRotation: 15,
-        font: { size: 10, weight: '500' }
-      },
-      grid: { display: false }
-    }
-  
-      plugins: [whiteBackgroundPlugin, watermarkPlugin]
-    });
-  
+  }, // <-- Objek options ditutup di sini
+  plugins: [whiteBackgroundPlugin, watermarkPlugin]
+});
     // 4. WEEKLY CHARTS
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
