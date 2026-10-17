@@ -1059,32 +1059,44 @@
           borderRadius: 6
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 10, bottom: 18, left: 10, right: 10 } },
-        plugins: {
-          title: {
-            display: true,
-            text: topChartTitle,
-            color: '#0f172a',
-            font: { size: 15, weight: 'bold' },
-            padding: { top: 5, bottom: 15 }
-          },
-          legend: { display: false },
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            color: '#000000',
-            font: { weight: 'bold', size: 11 },
-            formatter: (val) => val + " Pcs"
-          }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-          x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
-        }
+    options: {
+  responsive: true,
+  maintainAspectRatio: false, // Bebaskan rasio agar mengikuti lebar container
+  layout: {
+    padding: { top: 35, bottom: 15, left: 10, right: 10 }
+  },
+  plugins: {
+    title: {
+      display: true,
+      text: `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`,
+      font: { size: 16, weight: 'bold' },
+      padding: { bottom: 20 }
+    },
+    legend: { display: false },
+    datalabels: {
+      anchor: 'end',
+      align: 'top',
+      offset: 4,
+      font: { weight: 'bold', size: 12 },
+      formatter: (v) => v > 0 ? v + " Pcs" : ''
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grace: '25%', // Memberi ruang atas agar teks angka tidak mepet ke judul
+      ticks: { font: { size: 11 } }
+    },
+    x: {
+      ticks: {
+        autoSkip: false,
+        maxRotation: 20, // Bikin kemiringan teks landai/mendatar
+        minRotation: 15,
+        font: { size: 10, weight: '500' }
       },
+      grid: { display: false }
+    }
+  }
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
   
@@ -1239,30 +1251,35 @@
     ctx.drawImage(sourceCanvas, offsetX, offsetY, drawW, drawH);
   }
 
-  function downloadChart(canvasId, fileName) {
-    const originalCanvas = document.getElementById(canvasId);
-    if (!originalCanvas) return;
+ function downloadChart(canvasId, fileName) {
+  const originalCanvas = document.getElementById(canvasId);
+  if (!originalCanvas) return;
 
-    const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 1400;
-    exportCanvas.height = 750;
-    const ctx = exportCanvas.getContext('2d');
+  // 1. Buat Canvas Widescreen HD (1600 x 850 px)
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = 1600;
+  exportCanvas.height = 850;
+  const ctx = exportCanvas.getContext('2d');
 
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+  // 2. Background putih bersih
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
-    drawCanvasKeepAspect(ctx, originalCanvas, 20, 20, 1360, 690);
+  // 3. Tarik langsung memenuhi area canvas (Full Widescreen Landscape)
+  ctx.drawImage(originalCanvas, 30, 20, 1540, 780);
 
-    ctx.font = 'italic 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = 'rgba(100, 116, 139, 0.7)';
-    ctx.textAlign = 'right';
-    ctx.fillText('Generated automatically by IQC Apps System', 1380, 735);
+  // 4. Watermark pojok kanan bawah
+  ctx.font = 'italic 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = 'rgba(100, 116, 139, 0.5)';
+  ctx.textAlign = 'right';
+  ctx.fillText('Generated automatically by IQC Apps System', 1570, 830);
 
-    const link = document.createElement('a');
-    link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
-    link.download = fileName;
-    link.click();
-    showAlert('Gambar Daily Top Parts berhasil diunduh!', 'Berhasil', '📥');
+  // 5. Unduh file
+  const link = document.createElement('a');
+  link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+  link.download = fileName;
+  link.click();
+  showAlert('Gambar Daily Top Reject berhasil diunduh!', 'Berhasil', '📥');
   }
 
   function downloadCombinedPieCharts(fileName) {
