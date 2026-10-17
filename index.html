@@ -65,6 +65,7 @@
     .badge-status { padding: 4px 6px; border-radius: 6px; font-size: 10px; font-weight: bold; white-space: nowrap; }
     .badge-in { background: #dcfce7; color: #15803d; }
 
+    /* FORMAT TAG MERAH A6 - TERPERBAIKI DENGAN LOGO GEELY & BORDER ISI LENGKAP */
     .red-tag-container { width: 100%; max-width: 98mm; margin: 0 auto 15px auto; border: 2px solid #b91c1c; background: #ffffff; font-family: Arial, sans-serif; color: #000; box-sizing: border-box; page-break-after: always; }
     .red-tag-header { background: #b91c1c; color: white; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; }
     .red-tag-title-cn { font-size: 12px; font-weight: bold; }
@@ -93,10 +94,9 @@
 
     .chart-report-card { background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 15px; }
 
-    /* FLOATING BADGE KONTROL ANTREAN OFFLINE UPLOAD */
-    .floating-sync-badge { position: fixed; bottom: 20px; right: 20px; z-index: 99999; background: #0f172a; color: white; padding: 10px 16px; border-radius: 30px; font-size: 12px; font-weight: bold; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
-    .floating-sync-badge.syncing { background: #0284c7; }
-    .floating-sync-badge.done { background: #16a34a; }
+    .scrap-photo-thumb { position: relative; display: inline-block; margin: 4px; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+    .scrap-photo-thumb img { width: 75px; height: 75px; object-fit: cover; }
+    .scrap-photo-remove { position: absolute; top: 2px; right: 2px; background: rgba(220, 38, 38, 0.85); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
     @page { size: 105mm 148mm portrait; margin: 0mm; }
     @media print {
@@ -164,7 +164,7 @@
         <div class="menu-card" onclick="openScanner('IN')">
           <div class="icon-box" style="background:#dcfce7; color:#16a34a;">📥</div>
           <div class="menu-title">Stock In</div>
-          <div class="menu-sub">Scan 入库</div>
+          <div class="menu-sub">Scan 入库 (Lokasi Wajib)</div>
         </div>
 
         <div class="menu-card" onclick="openScanner('OUT')">
@@ -200,12 +200,12 @@
         <div class="menu-card" onclick="showPage('upload-scrap')">
           <div class="icon-box" style="background:#fef2f2; color:#b91c1c;">🗑️</div>
           <div class="menu-title">Upload Foto Scrap</div>
-          <div class="menu-sub">Antrean Cepat & Folder Batch Scrap</div>
+          <div class="menu-sub">Multi Foto & Auto Scan Out</div>
         </div>
       </div>
     </div>
 
-    <!-- IQC REPORT VIEW -->
+    <!-- 1. IQC REPORT VIEW -->
     <div id="view-iqc" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -239,7 +239,7 @@
 
       <div id="iqc-chart-section" style="display:none;">
         <div class="chart-report-card mb-3">
-          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill"></i> Laporan Harian (Daily Distribution)</h6>
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill"></i> Daily NC Distribution Chart</h6>
           <div class="row">
             <div class="col-md-6 mb-3">
               <div style="position: relative; height: 320px; background: #fff;">
@@ -262,13 +262,13 @@
             <canvas id="chartTopParts"></canvas>
           </div>
           <button type="button" class="btn-primary-custom mt-3" style="background:#10b981;" onclick="downloadChart('chartTopParts', 'IQC_Top_Parts.jpg')">
-            📥 Unduh Top Parts (JPG)
+            📥 Unduh Daily Top Parts (JPG)
           </button>
         </div>
 
-        <!-- FITUR 1: GRAFIK & PIE CHART KUMULATIF MINGGUAN -->
+        <!-- GRAFIK & PIE CHART KUMULATIF MINGGUAN (ENGLISH) -->
         <div class="chart-report-card mb-4">
-          <h6 class="fw-bold text-primary mb-3"><i class="bi bi-calendar-week"></i> Kumulatif Laporan Mingguan (Weekly Cumulative)</h6>
+          <h6 class="fw-bold text-primary mb-3"><i class="bi bi-calendar-week"></i> Weekly Cumulative NC & Top NG Parts Report (Weekly)</h6>
           <div class="row">
             <div class="col-md-6 mb-3">
               <div style="position: relative; height: 320px; background: #fff;">
@@ -277,18 +277,23 @@
             </div>
             <div class="col-md-6 mb-3">
               <div style="position: relative; height: 320px; background: #fff;">
+                <canvas id="chartWeeklyTopParts"></canvas>
+              </div>
+            </div>
+            <div class="col-12 mb-3">
+              <div style="position: relative; height: 320px; background: #fff;">
                 <canvas id="chartWeeklyTrend"></canvas>
               </div>
             </div>
           </div>
-          <button type="button" class="btn-primary-custom mt-2" style="background:#0284c7;" onclick="downloadCombinedWeeklyCharts('IQC_Weekly_Cumulative_Report.jpg')">
-            📥 Unduh Report Kumulatif Mingguan (JPG)
+          <button type="button" class="btn-primary-custom mt-2" style="background:#0284c7;" onclick="downloadCombinedWeeklyCharts('IQC_Weekly_Cumulative_Combined_Report.jpg')">
+            📥 Unduh Gabungan Weekly Report & Pie Chart (JPG)
           </button>
         </div>
       </div>
     </div>
 
-    <!-- STOCK BALANCE & CASE SUMMARY VIEW -->
+    <!-- 2. STOCK BALANCE VIEW -->
     <div id="view-inventory" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -296,13 +301,11 @@
       </div>
 
       <div class="custom-card">
-        <!-- SUB-TAB METRIK CASE SUMMARY -->
         <div class="nav nav-pills nav-justified mb-3" role="tablist">
           <button class="nav-link active fw-bold" id="tab-stock-main" onclick="switchStockSubTab('main')">📊 Stok Utama</button>
-          <button class="nav-link fw-bold" id="tab-stock-cases" onclick="switchStockSubTab('cases')">📦 Breakdown per Case</button>
+          <button class="nav-link fw-bold" id="tab-stock-cases" onclick="switchStockSubTab('cases')">📦 Case Summary (1 Sel 1 NCP)</button>
         </div>
 
-        <!-- DUA PILIHAN TAMPILAN -->
         <div id="subview-stock-main">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-size:13px; font-weight:bold;">NG Parts In Quarantine</span>
@@ -316,10 +319,9 @@
           <div id="stock-list-area" style="overflow-x:auto;">Loading stock...</div>
         </div>
 
-        <!-- FITUR 4: BREAKDOWN DYNAMICS RACK / CASE SUMMARY -->
         <div id="subview-stock-cases" style="display:none;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-size:13px; font-weight:bold;">Monitoring Lokasi Case dinamik</span>
+            <span style="font-size:13px; font-weight:bold;">Monitoring Case Location</span>
             <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadCaseSummaryData()">🔄 Refresh Cases</button>
           </div>
 
@@ -328,16 +330,15 @@
       </div>
     </div>
 
-    <!-- PENCARIAN BATCH NG VIEW -->
+    <!-- 3. PENCARIAN STATUS NG BATCH VIEW -->
     <div id="view-batch" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
         <strong style="font-size:15px;">Pencarian Status NG Batch</strong>
       </div>
 
-      <!-- FITUR 6: INPUT BATCH PERCEPAT DENGAN PREFIX & INCREMENT/DECREMENT -->
       <div class="custom-card mb-3">
-        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-search"></i> Input Cepat Nomor Batch</h6>
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-search"></i> Input & Cari Nomor Batch</h6>
         
         <div class="row g-2 mb-2">
           <div class="col-6">
@@ -350,13 +351,13 @@
             </select>
           </div>
           <div class="col-6">
-            <label>Kode Tengah:</label>
-            <input type="text" id="batch-middle-code" value="26100" oninput="updateBatchNumberFromControls()">
+            <label>Kode Tengah (Dapat Diubah):</label>
+            <input type="text" id="batch-middle-code" value="26" oninput="updateBatchNumberFromControls()" style="font-weight:bold; color:#0284c7;">
           </div>
         </div>
 
         <div class="form-group mb-2">
-          <label>Angka Urut Suffix (3 Digit):</label>
+          <label>Suffix Urut (3 Digit):</label>
           <div class="input-group">
             <button class="btn btn-outline-secondary fw-bold" type="button" onclick="adjustBatchNumber(-1)">-</button>
             <input type="number" id="batch-num-suffix" class="form-control text-center fw-bold" value="001" min="0" max="999" oninput="updateBatchNumberFromControls()">
@@ -365,12 +366,12 @@
         </div>
 
         <div class="form-group mb-3">
-          <label>Hasil Kode Batch Final:</label>
-          <input type="text" id="inputBatchSearch" class="form-control fw-bold text-primary" placeholder="Masukkan Nomor Batch">
+          <label>Nomor Batch Final / Ketik Bebas *:</label>
+          <input type="text" id="inputBatchSearch" class="form-control fw-bold text-primary" placeholder="Masukkan / Edit Nomor Batch">
         </div>
 
         <button class="btn btn-primary fw-bold w-100" type="button" onclick="prosesCekBatch()">
-          <i class="bi bi-search"></i> Cari Batch
+          <i class="bi bi-search"></i> Cari Status Batch
         </button>
       </div>
 
@@ -418,11 +419,11 @@
       </div>
     </div>
 
-    <!-- PRINT TAG MERAH VIEW -->
+    <!-- 4. PRINT TAG MERAH VIEW (RESTORED FORMAT A6 & LOGO GEELY PERSIS) -->
     <div id="view-print-tag" style="display:none;">
       <div class="page-header no-print">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
-        <strong style="font-size:15px;">Print Tag Merah (Format A6)</strong>
+        <strong style="font-size:15px;">Print Tag Merah (Format A6 Persis)</strong>
       </div>
 
       <div class="custom-card no-print">
@@ -466,13 +467,12 @@
         <hr style="border-top:1px dashed #cbd5e1; margin:15px 0;">
 
         <div class="form-group mb-2">
-          <label>Atau Cari Manual (Ketik Kode NCP / 3-5 Angka Terakhir):</label>
-          <input type="text" id="tag-search-ncp" placeholder="Contoh: 582 atau 142103..." style="font-weight:bold; color:#0284c7;" oninput="handleTagSearchInput(this.value)" autocomplete="off">
+          <label>Cari Manual (Ketik Kode NCP / 5 Angka Terakhir):</label>
+          <input type="text" id="tag-search-ncp" placeholder="Contoh: 20626 atau NCP-220626..." style="font-weight:bold; color:#0284c7;" oninput="handleTagSearchInput(this.value)" autocomplete="off">
           <div id="tag-suggestion-box" class="suggestion-list"></div>
         </div>
         <button type="button" class="btn-primary-custom mb-3" style="background:#64748b;" onclick="loadNcpForPrint()">🔍 Preview Data Single NCP</button>
 
-        <!-- FITUR 7: OPSI CETAK 1 TAG TOTAL QTY -->
         <div id="print-controls" style="display:none;" class="border-top pt-3">
           <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" id="chk-single-tag-mode" onchange="renderTagsPreview()">
@@ -500,7 +500,7 @@
       </div>
     </div>
 
-    <!-- UPLOAD FOTO SIGN NC VIEW -->
+    <!-- 5. UPLOAD FOTO SIGN NC VIEW -->
     <div id="view-upload-sign" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -513,12 +513,11 @@
         </button>
 
         <div class="form-group mb-3">
-          <label>Cari / Ketik Nomor NCP *:</label>
-          <input type="text" id="sign-nc-search-ncp" placeholder="Contoh: NCP-220626..." style="font-weight:bold; color:#0284c7;" oninput="handleSignNcSearchInput(this.value)" autocomplete="off">
+          <label>Cari / Ketik Nomor NCP (5 Angka Terakhir) *:</label>
+          <input type="text" id="sign-nc-search-ncp" placeholder="Contoh: 20626..." style="font-weight:bold; color:#0284c7;" oninput="handleSignNcSearchInput(this.value)" autocomplete="off">
           <div id="sign-nc-suggestion-box" class="suggestion-list"></div>
         </div>
 
-        <!-- FITUR 8: FLEXIBLE PHOTO SELECTOR (PC GALLERY / MOBILE CAMERA) -->
         <div class="form-group mb-3">
           <label>Ambil Foto / Pilih File Foto Sign NC *:</label>
           <input type="file" id="sign-nc-file" accept="image/*" onchange="previewSignNcPhoto(this)">
@@ -533,7 +532,7 @@
       </div>
     </div>
 
-    <!-- FITUR 9: UPLOAD FOTO SCRAP BATCH WITH OFFLINE QUEUE -->
+    <!-- 6. UPLOAD FOTO SCRAP PER BATCH VIEW (MULTI PHOTO & AUTO SCAN OUT) -->
     <div id="view-upload-scrap" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -544,7 +543,6 @@
         <div class="form-group mb-3">
           <label>Scrap Batch Ke-berapa * (Persisten):</label>
           <input type="number" id="scrap-batch-num" placeholder="Misal: 11" style="font-weight:bold; font-size:16px; color:#b91c1c;" onchange="saveScrapBatchPersist(this.value)">
-          <small class="text-muted" style="font-size:10px;">Nomor batch scrap ini akan tersimpan otomatis dan tidak akan reset sampai Anda mengubahnya.</small>
         </div>
 
         <button type="button" class="btn-primary-custom mb-3" style="background: linear-gradient(135deg, #dc2626, #b91c1c);" onclick="openScrapScanner()">
@@ -552,33 +550,28 @@
         </button>
 
         <div class="form-group mb-3">
-          <label>Atau Ketik / Cari Nomor NCP Unit *:</label>
-          <input type="text" id="scrap-search-ncp" placeholder="Masukkan Nomor NCP" style="font-weight:bold;" oninput="handleScrapSearchInput(this.value)" autocomplete="off">
+          <label>Atau Ketik / Cari Nomor NCP (5 Angka Terakhir) *:</label>
+          <input type="text" id="scrap-search-ncp" placeholder="Contoh: 20626..." style="font-weight:bold;" oninput="handleScrapSearchInput(this.value)" autocomplete="off">
           <div id="scrap-suggestion-box" class="suggestion-list"></div>
         </div>
 
         <div class="form-group mb-3">
-          <label>Pilih Foto Unit Scrap *:</label>
-          <input type="file" id="scrap-file-input" accept="image/*" onchange="previewScrapPhoto(this)">
+          <label>Pilih Foto Scrap (Bisa Pilih Banyak Foto / Kamera) *:</label>
+          <input type="file" id="scrap-file-input" accept="image/*" multiple onchange="previewScrapPhotos(this)">
         </div>
 
         <div id="scrap-preview-container" style="display:none; text-align:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
-          <img id="scrap-img-preview" src="" style="max-width:100%; max-height:220px; border-radius:8px;">
+          <div id="scrap-thumb-gallery" style="display:flex; flex-wrap:wrap; justify-content:center; gap:6px;"></div>
+          <small id="scrap-photo-count" class="fw-bold text-primary mt-2 d-block"></small>
         </div>
 
-        <button type="button" class="btn-primary-custom" style="background:#b91c1c;" onclick="queueScrapUpload()">
-          ⚡ Simpan Foto Scrap (Fast < 0.5s)
+        <button type="button" id="btn-submit-scrap" class="btn-primary-custom" style="background:#b91c1c;" onclick="submitUploadScrap()">
+          ⚡ Upload Foto Scrap & Auto Scan Out
         </button>
       </div>
     </div>
 
   </div>
-</div>
-
-<!-- FLOATING BADGE INDIKATOR ANTREAN SINKRONISASI -->
-<div id="floating-sync-badge" class="floating-sync-badge" style="display:none;">
-  <span id="sync-icon">🔄</span>
-  <span id="sync-text">Semua Tersimpan</span>
 </div>
 
 <!-- SCANNER MODAL DIALOG -->
@@ -599,11 +592,11 @@
 
   <div class="manual-input-container" id="scanner-manual-box">
     <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:6px; font-weight: bold;">
-      Atau Ketik Manual / Cari Kode NCP:
+      Atau Ketik Manual / Cari Kode NCP (5 Angka Terakhir):
     </label>
     <div style="position:relative;">
       <div style="display:flex; gap:8px;">
-        <input type="text" id="manual-ncp" placeholder="Misal: NCP-220626..." oninput="handleManualInput(this.value)" autocomplete="off" style="background: #ffffff; color: #0f172a; font-weight: bold;">
+        <input type="text" id="manual-ncp" placeholder="Misal: 20626 atau NCP-220626..." oninput="handleManualInput(this.value)" autocomplete="off" style="background: #ffffff; color: #0f172a; font-weight: bold;">
         <button type="button" id="btn-manual-ok" class="btn-primary-custom" style="width:auto; padding:0 20px; white-space:nowrap;" onclick="submitManualNcp()">OK</button>
       </div>
       <div id="suggestion-box" class="suggestion-list"></div>
@@ -627,10 +620,10 @@
         </tr>
       </table>
 
-      <!-- FITUR 2 & 3: FORM ADAPTIF STOCK IN / SCAN OUT -->
+      <!-- STOCK IN LOKASI WAJIB -->
       <div class="form-group" id="group-inv-area">
-        <label>Area / Location 存放位置 *</label>
-        <input type="text" id="inv-area" placeholder="e.g. Rack A-01 / Area Karantina">
+        <label id="lbl-inv-area">Area / Location 存放位置 * (WAJIB DIISI)</label>
+        <input type="text" id="inv-area" placeholder="e.g. Rack A-01 / Area Karantina" style="font-weight:bold; border:2px solid #0284c7;">
       </div>
 
       <div class="form-group">
@@ -640,7 +633,7 @@
           <option value="Rework OK" id="opt-status-rework">Rework OK (重工合格)</option>
           <option value="Release" id="opt-status-release">Release (放行)</option>
           <option value="Scrap" id="opt-status-scrap">Scrap (报废)</option>
-          <option value="Permintaan GAI" id="opt-status-gai">Permintaan GAI</option>
+          <option value="Return Supplier" id="opt-status-return">Return Supplier (退回供应商)</option>
         </select>
       </div>
 
@@ -680,17 +673,17 @@
   let globalStockData = [];
   let currentPrintData = null;
   let signNcBase64 = '';
-  let scrapBase64 = '';
+  let scrapBase64Array = [];
   let html5QrCodeScanner = null;
 
   let chartCategoryInstance = null;
   let chartStatusInstance = null;
   let chartTopPartsInstance = null;
   let chartWeeklyCategoryInstance = null;
+  let chartWeeklyTopPartsInstance = null;
   let chartWeeklyTrendInstance = null;
 
   let cachedNcpListDateShift = [];
-  let isProcessingScrapQueue = false;
 
   function callBackend(actionName, payload, onSuccess, onFailure) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -749,7 +742,7 @@
       ctx.fillStyle = 'rgba(100, 116, 139, 0.75)';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'bottom';
-      ctx.fillText('Generated automatically by IQC Apps', width - 8, height - 6);
+      ctx.fillText('Generated automatically by IQC Apps System', width - 8, height - 6);
       ctx.restore();
     }
   };
@@ -759,7 +752,6 @@
     document.getElementById('iqc-date').valueAsDate = today;
     document.getElementById('tag-filter-date').valueAsDate = today;
 
-    // RESTORE PERSISTEN SCRAP BATCH
     const savedBatch = localStorage.getItem('last_scrap_batch');
     if (savedBatch) {
       document.getElementById('scrap-batch-num').value = savedBatch;
@@ -767,7 +759,6 @@
 
     updateBatchNumberFromControls();
     checkLogin();
-    processScrapQueue();
   });
 
   function showAlert(msg, title = 'Informasi', icon = '💡') {
@@ -852,7 +843,7 @@
     }
   }
 
-  /* ------------------- FITUR 1: IQC REPORT & KUMULATIF CHART ------------------- */
+  /* ------------------- 1. IQC REPORT & KUMULATIF CHART ------------------- */
   function genIqcReport() {
     const tgl = document.getElementById('iqc-date').value;
     const shift = document.getElementById('iqc-shift').value;
@@ -880,7 +871,7 @@
     Chart.register(ChartDataLabels);
     const titleText = `IQC DAILY NC REPORT - ${data.dateStr}`;
 
-    // 1. CHART STATUS HARIAN
+    // Chart Status Harian
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     if (chartStatusInstance) chartStatusInstance.destroy();
 
@@ -907,7 +898,7 @@
       plugins: [whiteBackgroundPlugin]
     });
 
-    // 2. CHART KATEGORI HARIAN
+    // Chart Kategori Harian
     const ctxCat = document.getElementById('chartCategory').getContext('2d');
     if (chartCategoryInstance) chartCategoryInstance.destroy();
 
@@ -934,7 +925,7 @@
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
 
-    // 3. CHART TOP PARTS HARIAN
+    // Chart Top Parts Harian
     const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
 
@@ -957,10 +948,11 @@
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
 
-    // 4. CHART KUMULATIF MINGGUAN (PIE KATEGORI & TREND HARIAN)
+    // CHART KUMULATIF MINGGUAN (ENGLISH FORMAT)
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
 
+      // 1. Weekly Category Pie Chart
       const ctxWCat = document.getElementById('chartWeeklyCategory').getContext('2d');
       if (chartWeeklyCategoryInstance) chartWeeklyCategoryInstance.destroy();
 
@@ -974,8 +966,8 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            title: { display: true, text: `Kategori Kumulatif Mingguan (${wData.startDate} s/d ${wData.endDate})`, font: { size: 12, weight: 'bold' } },
-            subtitle: { display: true, text: `Total Kumulatif NC: ${wData.totalWeeklyNC} Cases`, font: { size: 10 } },
+            title: { display: true, text: `WEEKLY CUMULATIVE NC CATEGORY (${wData.startDate} to ${wData.endDate})`, font: { size: 11, weight: 'bold' } },
+            subtitle: { display: true, text: `Total Weekly NC: ${wData.totalWeeklyNC} Cases`, font: { size: 10 } },
             legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
             datalabels: { color: '#ffffff', font: { weight: 'bold', size: 10 }, formatter: (v) => v > 0 ? v + " NC" : '' }
           }
@@ -983,6 +975,30 @@
         plugins: [whiteBackgroundPlugin]
       });
 
+      // 2. Weekly Top Rejected Parts Bar Chart
+      const ctxWTop = document.getElementById('chartWeeklyTopParts').getContext('2d');
+      if (chartWeeklyTopPartsInstance) chartWeeklyTopPartsInstance.destroy();
+
+      chartWeeklyTopPartsInstance = new Chart(ctxWTop, {
+        type: 'bar',
+        data: {
+          labels: wData.topPartLabels,
+          datasets: [{ label: 'Quantity (Pcs)', data: wData.topPartValues, backgroundColor: '#0284c7', borderRadius: 5 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: `WEEKLY TOP REJECTED PARTS BY QUANTITY`, font: { size: 11, weight: 'bold' } },
+            legend: { display: false },
+            datalabels: { anchor: 'end', align: 'top', color: '#000', font: { size: 9, weight: 'bold' }, formatter: (v) => v + " Pcs" }
+          },
+          scales: { y: { beginAtZero: true }, x: { ticks: { font: { size: 8 } } } }
+        },
+        plugins: [whiteBackgroundPlugin]
+      });
+
+      // 3. Weekly Daily Trend Chart
       const ctxWTrend = document.getElementById('chartWeeklyTrend').getContext('2d');
       if (chartWeeklyTrendInstance) chartWeeklyTrendInstance.destroy();
 
@@ -999,7 +1015,7 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            title: { display: true, text: `Trend NG Seminggu Terakhir`, font: { size: 12, weight: 'bold' } },
+            title: { display: true, text: `WEEKLY DAILY NC & REJECTION TREND`, font: { size: 12, weight: 'bold' } },
             legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
             datalabels: { anchor: 'end', align: 'top', font: { size: 9, weight: 'bold' } }
           },
@@ -1041,28 +1057,33 @@
 
   function downloadCombinedWeeklyCharts(fileName) {
     const canvas1 = document.getElementById('chartWeeklyCategory');
-    const canvas2 = document.getElementById('chartWeeklyTrend');
-    if (!canvas1 || !canvas2) return;
+    const canvas2 = document.getElementById('chartWeeklyTopParts');
+    const canvas3 = document.getElementById('chartWeeklyTrend');
+    if (!canvas1 || !canvas2 || !canvas3) return;
 
     const tempCanvas = document.createElement('canvas');
     const ctx = tempCanvas.getContext('2d');
     const padding = 20, gap = 20;
+
     const w1 = canvas1.width, h1 = canvas1.height;
     const w2 = canvas2.width, h2 = canvas2.height;
+    const w3 = canvas3.width, h3 = canvas3.height;
 
-    tempCanvas.width = w1 + w2 + gap + (padding * 2);
-    tempCanvas.height = Math.max(h1, h2) + (padding * 2);
+    tempCanvas.width = Math.max(w1 + w2 + gap, w3) + (padding * 2);
+    tempCanvas.height = Math.max(h1, h2) + h3 + gap + (padding * 2);
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
     ctx.drawImage(canvas1, padding, padding, w1, h1);
     ctx.drawImage(canvas2, padding + w1 + gap, padding, w2, h2);
+    ctx.drawImage(canvas3, padding, padding + Math.max(h1, h2) + gap, tempCanvas.width - (padding * 2), h3);
 
     const link = document.createElement('a');
     link.href = tempCanvas.toDataURL('image/jpeg', 0.95);
     link.download = fileName;
     link.click();
-    showAlert('Gambar Laporan Kumulatif Mingguan berhasil diunduh!', 'Berhasil', '📥');
+    showAlert('Gambar Report Kumulatif Mingguan (Combined Weekly Chart) berhasil diunduh!', 'Berhasil', '📥');
   }
 
   function downloadChart(canvasId, fileName) {
@@ -1098,7 +1119,7 @@
     showAlert('Teks Laporan berhasil disalin!', 'Berhasil', '📋');
   }
 
-  /* ------------------- FITUR SCANNER & SCAN IN / SCAN OUT ------------------- */
+  /* ------------------- SCANNER & STOCK IN (LOKASI WAJIB) ------------------- */
   function startLiveScanner(onSuccess) {
     if (!html5QrCodeScanner) {
       html5QrCodeScanner = new Html5Qrcode("reader");
@@ -1139,15 +1160,16 @@
     document.getElementById('manual-ncp').value = '';
     hideSuggestions();
 
-    // ADAPTASI FORM BERDASARKAN TX TYPE (FITUR 2 & 3)
+    // STOCK IN WAJIB LOKASI!
     if (currentTxType === 'IN') {
       document.getElementById('group-inv-area').style.display = 'block';
+      document.getElementById('lbl-inv-area').innerText = 'Area / Location 存放位置 * (WAJIB DIISI UNTUK STOCK IN)';
       document.getElementById('inv-status').value = 'Karantina (Quarantine)';
-      document.getElementById('inv-status').disabled = true; // Lock hanya Karantina
+      document.getElementById('inv-status').disabled = true;
     } else {
-      document.getElementById('group-inv-area').style.display = 'none'; // Sembunyikan lokasi pada Scan OUT
+      document.getElementById('group-inv-area').style.display = 'none';
       document.getElementById('inv-status').disabled = false;
-      document.getElementById('opt-status-karantina').style.display = 'none'; // Hilangkan opsi Karantina
+      document.getElementById('opt-status-karantina').style.display = 'none';
       document.getElementById('inv-status').value = 'Rework OK';
     }
 
@@ -1207,7 +1229,7 @@
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showSuggestions);
-    }, 300);
+    }, 250);
   }
 
   function showSuggestions(list) {
@@ -1271,6 +1293,12 @@
   function confirmTransaction() {
     if (!scannedNcpData) return;
 
+    const areaLocationVal = document.getElementById('inv-area').value.trim();
+    if (currentTxType === 'IN' && (!areaLocationVal || areaLocationVal === '-')) {
+      showAlert('Lokasi / Area penyimpanan WAJIB diisi untuk Stock IN! 存放位置不能为空！', 'Peringatan', '⚠️');
+      return;
+    }
+
     const editedQty = parseInt(document.getElementById('inv-qty').value);
     if (isNaN(editedQty) || editedQty <= 0) {
       showAlert('Masukkan Qty yang valid (> 0)!', 'Peringatan', '⚠️');
@@ -1290,7 +1318,7 @@
       qty: editedQty,
       defect: scannedNcpData.defect,
       actionStatus: document.getElementById('inv-status').value,
-      areaLocation: document.getElementById('inv-area').value.trim() || '-',
+      areaLocation: areaLocationVal || '-',
       userName: user.name,
       department: user.dept,
       remarks: document.getElementById('inv-remarks').value.trim() || '-'
@@ -1311,7 +1339,7 @@
     });
   }
 
-  /* ------------------- FITUR 4: CASE SUMMARY & RACK DYNAMICS ------------------- */
+  /* ------------------- 2. CASE SUMMARY & STOCK BALANCE ------------------- */
   function switchStockSubTab(type) {
     if (type === 'cases') {
       document.getElementById('tab-stock-main').classList.remove('active');
@@ -1425,7 +1453,7 @@
     });
   }
 
-  /* ------------------- FITUR 6: PENCARIAN & DUKUNGAN INPUT BATCH BATCH ------------------- */
+  /* ------------------- 3. PENCARIAN BATCH NG (KODE TENGAH EDITABLE) ------------------- */
   function adjustBatchNumber(delta) {
     let inp = document.getElementById('batch-num-suffix');
     let val = parseInt(inp.value) || 0;
@@ -1480,7 +1508,7 @@
     });
   }
 
-  /* ------------------- FITUR 7: PRINT TAG MERAH OPTION SINGLE ------------------- */
+  /* ------------------- 4. PRINT TAG MERAH (RESTORED PERSIS 100% FORMAT PRINT TAG NG.TXT) ------------------- */
   function loadNcpListByDateShift() {
     const tgl = document.getElementById('tag-filter-date').value;
     const shift = document.getElementById('tag-filter-shift').value;
@@ -1532,11 +1560,11 @@
 
   function handleTagSearchInput(val) {
     const query = val.trim();
-    if (query.length < 3) { hideTagSuggestions(); return; }
+    if (query.length < 2) { hideTagSuggestions(); return; }
     clearTimeout(tagSearchTimeout);
     tagSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showTagSuggestions);
-    }, 300);
+    }, 250);
   }
 
   function showTagSuggestions(list) {
@@ -1594,11 +1622,11 @@
 
     if (isSingleTagMode) {
       document.getElementById('multi-tag-controls').style.display = 'none';
-      html += buildSingleTagHtml(currentPrintData, currentPrintData.qty, preparedByVal, dateVal);
+      html += buildTagHtml(currentPrintData, "Qty / 数量: " + currentPrintData.qty + " Pcs", preparedByVal, dateVal);
     } else {
       document.getElementById('multi-tag-controls').style.display = 'flex';
       for (var i = startCopy; i <= totalCopy; i++) {
-        html += buildMultiTagHtml(currentPrintData, i, totalCopy, preparedByVal, dateVal);
+        html += buildTagHtml(currentPrintData, "Qty / 数量: " + i + " of " + totalCopy, preparedByVal, dateVal);
       }
     }
 
@@ -1614,56 +1642,140 @@
     }, 100);
   }
 
-  function buildSingleTagHtml(data, totalQty, preparedByVal, dateVal) {
-    return `<div class="red-tag-container">
+  // BUILDER TAG MERAH A6 - TERHUBUNG KEMBALI PERSIS DENGAN FORMAT LOGO GEELY SVG DARI FORMAT PRINT TAG NG.TXT
+  function buildTagHtml(data, qtyBannerText, preparedByVal, dateVal) {
+    return `
+    <div class="red-tag-container">
       <div class="red-tag-header">
         <div>
           <div class="red-tag-title-en">NON-CONFORMING PRODUCT TAG</div>
           <div class="red-tag-title-cn">不合格品标签</div>
         </div>
-      </div>
-      <div class="red-tag-body">
-        <div class="tag-row"><div class="tag-label">Part Number / 零件编号:</div><div class="tag-val"><strong>${data.partNo}</strong></div></div>
-        <div class="tag-row"><div class="tag-label">Part Name / 零件名称:</div><div class="tag-val">${data.partName}</div></div>
-        <div class="tag-row"><div class="tag-label">Batch No / 批次:</div><div class="tag-val"><strong>${data.batchNo || '-'}</strong></div></div>
-        <div class="qty-banner">Qty / 数量: ${totalQty} Pcs</div>
-        <div class="tag-row"><div class="tag-label">Prepared By 填写人:</div><div class="tag-val">${preparedByVal}</div></div>
-        <div class="tag-row" style="flex-direction:column; align-items:flex-start;"><div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div><div class="tag-val" style="font-weight:bold;">${data.defect || '-'}</div></div>
-        <div class="tag-row"><div class="tag-label">Date / 日期:</div><div class="tag-val">${dateVal}</div></div>
-      </div>
-      <div class="red-tag-footer">
-        <div class="ncp-text-box">
-          <div style="font-size:10px;">NCP CODE / 编号:</div>
-          <div style="font-size:18px; font-weight:900;">${data.ncpCode}</div>
+        <div class="geely-logo-svg">
+          <svg width="85" height="42" viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg">
+            <g fill="#000000">
+              <path d="M 20,20 C 55,16 95,15 135,15 L 135,78 C 95,78 55,76 22,72 C 21,55 20,37 20,20 Z"/>
+              <path d="M 148,15 C 216,14 284,14 352,15 L 352,78 C 284,79 216,79 148,78 Z"/>
+              <path d="M 365,15 C 405,15 445,16 480,20 C 480,37 479,55 478,72 C 445,76 405,78 365,78 Z"/>
+              <path d="M 24,86 C 55,90 95,92 135,92 L 135,152 C 102,141 58,122 36,108 C 29,102 25,95 24,86 Z"/>
+              <path d="M 148,92 C 216,93 284,93 352,92 L 352,162 C 284,172 216,172 148,162 Z"/>
+              <path d="M 365,92 C 405,92 445,90 476,86 C 475,95 471,102 464,108 C 442,122 398,141 365,152 Z"/>
+              <rect x="20" y="195" width="72" height="12"/>
+              <rect x="20" y="195" width="12" height="50"/>
+              <rect x="20" y="233" width="72" height="12"/>
+              <rect x="80" y="214" width="12" height="31"/>
+              <rect x="52" y="214" width="40" height="12"/>
+              <rect x="115" y="195" width="12" height="50"/>
+              <rect x="115" y="195" width="72" height="12"/>
+              <rect x="115" y="214" width="58" height="10"/>
+              <rect x="115" y="233" width="72" height="12"/>
+              <rect x="210" y="195" width="12" height="50"/>
+              <rect x="210" y="195" width="72" height="12"/>
+              <rect x="210" y="214" width="58" height="10"/>
+              <rect x="210" y="233" width="72" height="12"/>
+              <rect x="305" y="195" width="12" height="50"/>
+              <rect x="305" y="233" width="72" height="12"/>
+              <polygon points="400,195 414,195 442,222 428,222"/>
+              <polygon points="472,195 458,195 430,222 444,222"/>
+              <rect x="430" y="220" width="14" height="25"/>
+            </g>
+          </svg>
         </div>
-        <div class="qr-code-wrapper"><div class="qrcode-target" data-code="${data.ncpCode}"></div></div>
       </div>
-    </div>`;
-  }
 
-  function buildMultiTagHtml(data, currentCopy, totalCopy, preparedByVal, dateVal) {
-    return `<div class="red-tag-container">
-      <div class="red-tag-header">
-        <div>
-          <div class="red-tag-title-en">NON-CONFORMING PRODUCT TAG</div>
-          <div class="red-tag-title-cn">不合格品标签</div>
+      <div class="red-tag-body">
+        <div class="tag-row">
+          <div class="tag-label">Model / 车型:</div>
+          <div class="tag-val">
+            <span class="chk-item">☐ E22H</span>
+            <span class="chk-item">☐ E245</span>
+            <span class="chk-item">☐ P145</span>
+          </div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Part Number / 零件编号:</div>
+          <div class="tag-val"><strong>${data.partNo}</strong></div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Part Name / 零件名称:</div>
+          <div class="tag-val">${data.partName}</div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Batch No / 批次:</div>
+          <div class="tag-val"><strong>${data.batchNo || '-'}</strong></div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Box No / 箱号:</div>
+          <div class="tag-val"><strong>${data.boxNo || '-'}</strong></div>
+        </div>
+
+        <div class="qty-banner">
+          ${qtyBannerText}
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Prepared By 填写人:</div>
+          <div class="tag-val">${preparedByVal}</div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Issue Category / 不良类别:</div>
+          <div class="tag-val">
+            <div class="chk-group">
+              <span class="chk-item">☐ PD</span> <span class="chk-item">☐ PQ</span> <span class="chk-item">☐ FQ</span> 
+              <span class="chk-item">☐ ST</span> <span class="chk-item">☐ WS</span> <span class="chk-item">☐ AQ</span>
+              <span class="chk-item">☐ LD</span> <span class="chk-item">☐ ID</span> <span class="chk-item">☐ HP</span> 
+              <span class="chk-item">☐ MP</span> <span class="chk-item">☐ IP</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tag-row" style="flex-direction:column; align-items:flex-start; padding:4px 0;">
+          <div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div>
+          <div class="tag-val" style="margin-top:2px; font-weight:bold;">${data.defect || '-'}</div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Responsibility / 责任:</div>
+          <div class="tag-val">
+            <span class="chk-item">☐ GEELY</span>
+            <span class="chk-item">☐ HIM</span>
+            <span class="chk-item">☐ Need validation 需要确认</span>
+          </div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Disposition / 处置方式:</div>
+          <div class="tag-val">
+            <span class="chk-item">☐ Claim</span>
+            <span class="chk-item">☐ Repair</span>
+            <span class="chk-item">☐ Rework</span>
+            <span class="chk-item">☐ Return</span>
+            <span class="chk-item">☐ Hold</span>
+          </div>
+        </div>
+
+        <div class="tag-row">
+          <div class="tag-label">Date / 日期:</div>
+          <div class="tag-val" style="display:flex; justify-content: flex-start; gap: 15px;">
+            <span>${dateVal}</span>
+            <span><b>NG Box / 箱号:</b></span>          
+          </div>
         </div>
       </div>
-      <div class="red-tag-body">
-        <div class="tag-row"><div class="tag-label">Part Number / 零件编号:</div><div class="tag-val"><strong>${data.partNo}</strong></div></div>
-        <div class="tag-row"><div class="tag-label">Part Name / 零件名称:</div><div class="tag-val">${data.partName}</div></div>
-        <div class="tag-row"><div class="tag-label">Batch No / 批次:</div><div class="tag-val"><strong>${data.batchNo || '-'}</strong></div></div>
-        <div class="qty-banner">Qty / 数量: ${currentCopy} of ${totalCopy}</div>
-        <div class="tag-row"><div class="tag-label">Prepared By 填写人:</div><div class="tag-val">${preparedByVal}</div></div>
-        <div class="tag-row" style="flex-direction:column; align-items:flex-start;"><div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div><div class="tag-val" style="font-weight:bold;">${data.defect || '-'}</div></div>
-        <div class="tag-row"><div class="tag-label">Date / 日期:</div><div class="tag-val">${dateVal}</div></div>
-      </div>
+
       <div class="red-tag-footer">
         <div class="ncp-text-box">
-          <div style="font-size:10px;">NCP CODE / 编号:</div>
-          <div style="font-size:18px; font-weight:900;">${data.ncpCode}</div>
+          <div style="font-size:10px; opacity:0.9;">NCP CODE / 编号:</div>
+          <div style="font-size:18px; font-weight:900; letter-spacing:0.5px;">${data.ncpCode}</div>
         </div>
-        <div class="qr-code-wrapper"><div class="qrcode-target" data-code="${data.ncpCode}"></div></div>
+        <div class="qr-code-wrapper">
+          <div class="qrcode-target" data-code="${data.ncpCode}"></div>
+        </div>
       </div>
     </div>`;
   }
@@ -1673,14 +1785,14 @@
     setTimeout(function() { window.print(); }, 300);
   }
 
-  /* ------------------- FITUR 8: UPLOAD FOTO SIGN NC ------------------- */
+  /* ------------------- 5. UPLOAD FOTO SIGN NC ------------------- */
   function handleSignNcSearchInput(val) {
     const query = val.trim();
     if (query.length < 2) { hideSignNcSuggestions(); return; }
     clearTimeout(signNcSearchTimeout);
     signNcSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showSignNcSuggestions);
-    }, 300);
+    }, 250);
   }
 
   function showSignNcSuggestions(list) {
@@ -1739,7 +1851,7 @@
     });
   }
 
-  /* ------------------- FITUR 9: UPLOAD FOTO SCRAP WITH OFFLINE QUEUE ------------------- */
+  /* ------------------- 6. UPLOAD MULTI FOTO SCRAP & AUTO SCAN OUT ------------------- */
   function saveScrapBatchPersist(val) {
     if (val) {
       localStorage.setItem('last_scrap_batch', val.trim());
@@ -1752,7 +1864,7 @@
     clearTimeout(scrapSearchTimeout);
     scrapSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showScrapSuggestions);
-    }, 300);
+    }, 250);
   }
 
   function showScrapSuggestions(list) {
@@ -1777,111 +1889,94 @@
     if (sugBox) sugBox.style.display = 'none';
   }
 
-  function previewScrapPhoto(input) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        scrapBase64 = e.target.result;
-        document.getElementById('scrap-img-preview').src = scrapBase64;
-        document.getElementById('scrap-preview-container').style.display = 'block';
-      };
-      reader.readAsDataURL(input.files[0]);
+  function previewScrapPhotos(input) {
+    scrapBase64Array = [];
+    const container = document.getElementById('scrap-preview-container');
+    const gallery = document.getElementById('scrap-thumb-gallery');
+    const countLabel = document.getElementById('scrap-photo-count');
+    gallery.innerHTML = '';
+
+    if (input.files && input.files.length > 0) {
+      let loadedCount = 0;
+      Array.from(input.files).forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          scrapBase64Array.push(e.target.result);
+          
+          const thumbDiv = document.createElement('div');
+          thumbDiv.className = 'scrap-photo-thumb';
+          thumbDiv.innerHTML = `<img src="${e.target.result}"><button type="button" class="scrap-photo-remove" onclick="removeScrapPhoto(${idx})">✕</button>`;
+          gallery.appendChild(thumbDiv);
+
+          loadedCount++;
+          if (loadedCount === input.files.length) {
+            countLabel.innerText = `Total ${scrapBase64Array.length} foto dipilih`;
+            container.style.display = 'block';
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    } else {
+      container.style.display = 'none';
     }
   }
 
-  function queueScrapUpload() {
+  function removeScrapPhoto(index) {
+    scrapBase64Array.splice(index, 1);
+    const gallery = document.getElementById('scrap-thumb-gallery');
+    gallery.innerHTML = '';
+    scrapBase64Array.forEach((b64, idx) => {
+      const thumbDiv = document.createElement('div');
+      thumbDiv.className = 'scrap-photo-thumb';
+      thumbDiv.innerHTML = `<img src="${b64}"><button type="button" class="scrap-photo-remove" onclick="removeScrapPhoto(${idx})">✕</button>`;
+      gallery.appendChild(thumbDiv);
+    });
+    
+    document.getElementById('scrap-photo-count').innerText = `Total ${scrapBase64Array.length} foto dipilih`;
+    if (scrapBase64Array.length === 0) {
+      document.getElementById('scrap-preview-container').style.display = 'none';
+    }
+  }
+
+  function submitUploadScrap() {
     const scrapBatch = document.getElementById('scrap-batch-num').value.trim();
     const ncpCode = document.getElementById('scrap-search-ncp').value.trim();
 
     if (!scrapBatch) { showAlert("Isikan nomor Scrap Batch terlebih dahulu!", "Peringatan", "⚠️"); return; }
     if (!ncpCode) { showAlert("Isikan / scan nomor NCP terlebih dahulu!", "Peringatan", "⚠️"); return; }
-    if (!scrapBase64) { showAlert("Pilih foto unit scrap terlebih dahulu!", "Peringatan", "⚠️"); return; }
+    if (!scrapBase64Array || scrapBase64Array.length === 0) { showAlert("Pilih minimal 1 foto unit scrap terlebih dahulu!", "Peringatan", "⚠️"); return; }
 
-    // SIMPAN NOMOR BATCH SECARA PERSISTEN
     saveScrapBatchPersist(scrapBatch);
 
-    const taskPayload = {
+    const user = JSON.parse(localStorage.getItem('geely_ncp_user'));
+    const btn = document.getElementById('btn-submit-scrap');
+    btn.disabled = true;
+    btn.innerText = `⏳ Mengupload ${scrapBase64Array.length} Foto Scrap...`;
+
+    const payload = {
       ncpCode: ncpCode,
       scrapBatch: scrapBatch,
-      base64Data: scrapBase64,
-      timestamp: Date.now()
+      base64DataList: scrapBase64Array,
+      userName: user.name,
+      department: user.dept
     };
 
-    // RESTORE QUEUE LOCAL STORAGE
-    let queue = [];
-    try {
-      queue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
-    } catch(e) { queue = []; }
-
-    queue.push(taskPayload);
-    localStorage.setItem('scrap_upload_queue', JSON.stringify(queue));
-
-    // RESET FORM INSTAN (< 0.5 DETIK)
-    document.getElementById('scrap-search-ncp').value = '';
-    document.getElementById('scrap-file-input').value = '';
-    document.getElementById('scrap-preview-container').style.display = 'none';
-    scrapBase64 = '';
-
-    // PEMICU BACKGROUND PROCESSING
-    updateFloatingSyncBadge();
-    processScrapQueue();
-  }
-
-  function updateFloatingSyncBadge() {
-    let queue = [];
-    try {
-      queue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
-    } catch(e) { queue = []; }
-
-    const badge = document.getElementById('floating-sync-badge');
-    const icon = document.getElementById('sync-icon');
-    const text = document.getElementById('sync-text');
-
-    if (queue.length > 0) {
-      badge.style.display = 'flex';
-      badge.className = 'floating-sync-badge syncing';
-      icon.innerText = '🔄';
-      text.innerText = `Mengirim (${queue.length})...`;
-    } else {
-      badge.className = 'floating-sync-badge done';
-      icon.innerText = '✅';
-      text.innerText = `Semua Tersimpan`;
-      setTimeout(() => { badge.style.display = 'none'; }, 2500);
-    }
-  }
-
-  function processScrapQueue() {
-    if (isProcessingScrapQueue) return;
-
-    let queue = [];
-    try {
-      queue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
-    } catch(e) { queue = []; }
-
-    if (queue.length === 0) {
-      updateFloatingSyncBadge();
-      return;
-    }
-
-    isProcessingScrapQueue = true;
-    updateFloatingSyncBadge();
-
-    const currentTask = queue[0];
-
-    callBackend('uploadFotoScrap', currentTask, function(res) {
-      let updatedQueue = [];
-      try {
-        updatedQueue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
-      } catch(e) { updatedQueue = []; }
-
-      updatedQueue.shift(); // Hapus item yang selesai dikirim
-      localStorage.setItem('scrap_upload_queue', JSON.stringify(updatedQueue));
-
-      isProcessingScrapQueue = false;
-      processScrapQueue(); // Lanjutkan item antrean berikutnya
+    callBackend('uploadFotoScrap', payload, function(res) {
+      btn.disabled = false;
+      btn.innerText = '⚡ Upload Foto Scrap & Auto Scan Out';
+      if (res.success) {
+        showAlert(res.message, "Upload Berhasil", "✅");
+        document.getElementById('scrap-search-ncp').value = '';
+        document.getElementById('scrap-file-input').value = '';
+        document.getElementById('scrap-preview-container').style.display = 'none';
+        scrapBase64Array = [];
+      } else {
+        showAlert(res.message, "Gagal Upload", "❌");
+      }
     }, function(err) {
-      isProcessingScrapQueue = false;
-      setTimeout(processScrapQueue, 5000); // Retry jika gagal koneksi
+      btn.disabled = false;
+      btn.innerText = '⚡ Upload Foto Scrap & Auto Scan Out';
+      showAlert("Server Error: " + err.message, "Error", "⚠️");
     });
   }
 </script>
