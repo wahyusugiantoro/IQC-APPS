@@ -93,6 +93,11 @@
 
     .chart-report-card { background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 15px; }
 
+    /* FLOATING BADGE KONTROL ANTREAN OFFLINE UPLOAD */
+    .floating-sync-badge { position: fixed; bottom: 20px; right: 20px; z-index: 99999; background: #0f172a; color: white; padding: 10px 16px; border-radius: 30px; font-size: 12px; font-weight: bold; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+    .floating-sync-badge.syncing { background: #0284c7; }
+    .floating-sync-badge.done { background: #16a34a; }
+
     @page { size: 105mm 148mm portrait; margin: 0mm; }
     @media print {
       html, body { width: 105mm !important; height: 148mm !important; margin: 0 !important; padding: 0 !important; background: #ffffff !important; }
@@ -171,7 +176,7 @@
         <div class="menu-card" onclick="showPage('inventory')">
           <div class="icon-box" style="background:#fef3c7; color:#d97706;">📊</div>
           <div class="menu-title">Stock Balance</div>
-          <div class="menu-sub">NG Inventory 库存</div>
+          <div class="menu-sub">NG Inventory & Case Summary</div>
         </div>
 
         <div class="menu-card" onclick="showPage('batch')">
@@ -191,9 +196,16 @@
           <div class="menu-title">Upload Foto Sign NC</div>
           <div class="menu-sub">Upload Foto & Centang Spreadsheet</div>
         </div>
+
+        <div class="menu-card" onclick="showPage('upload-scrap')">
+          <div class="icon-box" style="background:#fef2f2; color:#b91c1c;">🗑️</div>
+          <div class="menu-title">Upload Foto Scrap</div>
+          <div class="menu-sub">Antrean Cepat & Folder Batch Scrap</div>
+        </div>
       </div>
     </div>
 
+    <!-- IQC REPORT VIEW -->
     <div id="view-iqc" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -227,6 +239,7 @@
 
       <div id="iqc-chart-section" style="display:none;">
         <div class="chart-report-card mb-3">
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill"></i> Laporan Harian (Daily Distribution)</h6>
           <div class="row">
             <div class="col-md-6 mb-3">
               <div style="position: relative; height: 320px; background: #fff;">
@@ -244,7 +257,7 @@
           </button>
         </div>
 
-        <div class="chart-report-card mb-4">
+        <div class="chart-report-card mb-3">
           <div style="position: relative; height: 340px; background: #fff;">
             <canvas id="chartTopParts"></canvas>
           </div>
@@ -252,9 +265,30 @@
             📥 Unduh Top Parts (JPG)
           </button>
         </div>
+
+        <!-- FITUR 1: GRAFIK & PIE CHART KUMULATIF MINGGUAN -->
+        <div class="chart-report-card mb-4">
+          <h6 class="fw-bold text-primary mb-3"><i class="bi bi-calendar-week"></i> Kumulatif Laporan Mingguan (Weekly Cumulative)</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div style="position: relative; height: 320px; background: #fff;">
+                <canvas id="chartWeeklyCategory"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div style="position: relative; height: 320px; background: #fff;">
+                <canvas id="chartWeeklyTrend"></canvas>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-primary-custom mt-2" style="background:#0284c7;" onclick="downloadCombinedWeeklyCharts('IQC_Weekly_Cumulative_Report.jpg')">
+            📥 Unduh Report Kumulatif Mingguan (JPG)
+          </button>
+        </div>
       </div>
     </div>
 
+    <!-- STOCK BALANCE & CASE SUMMARY VIEW -->
     <div id="view-inventory" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -262,33 +296,82 @@
       </div>
 
       <div class="custom-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <span style="font-size:13px; font-weight:bold;">NG Parts In Quarantine</span>
-          <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadStockSummary()">🔄 Refresh</button>
+        <!-- SUB-TAB METRIK CASE SUMMARY -->
+        <div class="nav nav-pills nav-justified mb-3" role="tablist">
+          <button class="nav-link active fw-bold" id="tab-stock-main" onclick="switchStockSubTab('main')">📊 Stok Utama</button>
+          <button class="nav-link fw-bold" id="tab-stock-cases" onclick="switchStockSubTab('cases')">📦 Breakdown per Case</button>
         </div>
 
-        <div class="form-group" style="margin-bottom: 12px;">
-          <input type="text" id="stock-search-input" placeholder="🔍 Cari NCP, Part No, Batch No, atau Nama..." onkeyup="filterStockData()" style="background:#f1f5f9; font-weight:600;">
+        <!-- DUA PILIHAN TAMPILAN -->
+        <div id="subview-stock-main">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:13px; font-weight:bold;">NG Parts In Quarantine</span>
+            <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadStockSummary()">🔄 Refresh</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+            <input type="text" id="stock-search-input" placeholder="🔍 Cari NCP, Part No, Batch No, atau Nama..." onkeyup="filterStockData()" style="background:#f1f5f9; font-weight:600;">
+          </div>
+
+          <div id="stock-list-area" style="overflow-x:auto;">Loading stock...</div>
         </div>
 
-        <div id="stock-list-area" style="overflow-x:auto;">Loading stock...</div>
+        <!-- FITUR 4: BREAKDOWN DYNAMICS RACK / CASE SUMMARY -->
+        <div id="subview-stock-cases" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:13px; font-weight:bold;">Monitoring Lokasi Case dinamik</span>
+            <button type="button" style="padding:6px 12px; font-size:11px; border-radius:8px; border:1px solid #cbd5e1; background:white; font-weight:600;" onclick="loadCaseSummaryData()">🔄 Refresh Cases</button>
+          </div>
+
+          <div id="case-summary-list-area">Loading case details...</div>
+        </div>
       </div>
     </div>
 
+    <!-- PENCARIAN BATCH NG VIEW -->
     <div id="view-batch" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
         <strong style="font-size:15px;">Pencarian Status NG Batch</strong>
       </div>
 
+      <!-- FITUR 6: INPUT BATCH PERCEPAT DENGAN PREFIX & INCREMENT/DECREMENT -->
       <div class="custom-card mb-3">
-        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-search"></i> Cek Status Scan In per Batch</h6>
-        <div class="input-group">
-          <input type="text" id="inputBatchSearch" class="form-control" placeholder="Masukkan Nomor Batch">
-          <button class="btn btn-primary fw-bold" type="button" onclick="prosesCekBatch()">
-            <i class="bi bi-search"></i> Cari Batch
-          </button>
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-search"></i> Input Cepat Nomor Batch</h6>
+        
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label>Prefix Batch:</label>
+            <select id="batch-prefix-select" onchange="updateBatchNumberFromControls()">
+              <option value="GSIDE">GSIDE</option>
+              <option value="GSIDK">GSIDK</option>
+              <option value="GMIDE">GMIDE</option>
+              <option value="GMIDK">GMIDK</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label>Kode Tengah:</label>
+            <input type="text" id="batch-middle-code" value="26100" oninput="updateBatchNumberFromControls()">
+          </div>
         </div>
+
+        <div class="form-group mb-2">
+          <label>Angka Urut Suffix (3 Digit):</label>
+          <div class="input-group">
+            <button class="btn btn-outline-secondary fw-bold" type="button" onclick="adjustBatchNumber(-1)">-</button>
+            <input type="number" id="batch-num-suffix" class="form-control text-center fw-bold" value="001" min="0" max="999" oninput="updateBatchNumberFromControls()">
+            <button class="btn btn-outline-secondary fw-bold" type="button" onclick="adjustBatchNumber(1)">+</button>
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Hasil Kode Batch Final:</label>
+          <input type="text" id="inputBatchSearch" class="form-control fw-bold text-primary" placeholder="Masukkan Nomor Batch">
+        </div>
+
+        <button class="btn btn-primary fw-bold w-100" type="button" onclick="prosesCekBatch()">
+          <i class="bi bi-search"></i> Cari Batch
+        </button>
       </div>
 
       <div id="hasilBatchContainer" style="display:none;" class="mb-4">
@@ -335,7 +418,7 @@
       </div>
     </div>
 
-    <!-- MENU PRINT TAG MERAH VIA FILTER TANGGAL & SHIFT -->
+    <!-- PRINT TAG MERAH VIEW -->
     <div id="view-print-tag" style="display:none;">
       <div class="page-header no-print">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -389,15 +472,23 @@
         </div>
         <button type="button" class="btn-primary-custom mb-3" style="background:#64748b;" onclick="loadNcpForPrint()">🔍 Preview Data Single NCP</button>
 
+        <!-- FITUR 7: OPSI CETAK 1 TAG TOTAL QTY -->
         <div id="print-controls" style="display:none;" class="border-top pt-3">
-          <div class="row g-2 mb-3">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="chk-single-tag-mode" onchange="renderTagsPreview()">
+            <label class="form-check-label fw-bold text-danger" for="chk-single-tag-mode" style="font-size:12px;">
+              🏷️ Cetak 1 Tag Saja dengan Total Qty (Tanpa Split 1 of N)
+            </label>
+          </div>
+
+          <div class="row g-2 mb-3" id="multi-tag-controls">
             <div class="col-6">
               <label>Mulai Copy ke-:</label>
-              <input type="number" id="start-copy" value="1" min="1">
+              <input type="number" id="start-copy" value="1" min="1" onchange="renderTagsPreview()">
             </div>
             <div class="col-6">
               <label>Total Copy (Qty):</label>
-              <input type="number" id="total-copy" value="1" min="1">
+              <input type="number" id="total-copy" value="1" min="1" onchange="renderTagsPreview()">
             </div>
           </div>
           <button type="button" class="btn-primary-custom" style="background:#dc2626;" onclick="executePrintTags()">🖨️ Cetak Tag Merah A6 Sekarang</button>
@@ -409,6 +500,7 @@
       </div>
     </div>
 
+    <!-- UPLOAD FOTO SIGN NC VIEW -->
     <div id="view-upload-sign" style="display:none;" class="no-print">
       <div class="page-header">
         <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
@@ -426,9 +518,10 @@
           <div id="sign-nc-suggestion-box" class="suggestion-list"></div>
         </div>
 
+        <!-- FITUR 8: FLEXIBLE PHOTO SELECTOR (PC GALLERY / MOBILE CAMERA) -->
         <div class="form-group mb-3">
           <label>Ambil Foto / Pilih File Foto Sign NC *:</label>
-          <input type="file" id="sign-nc-file" accept="image/*" capture="environment" onchange="previewSignNcPhoto(this)">
+          <input type="file" id="sign-nc-file" accept="image/*" onchange="previewSignNcPhoto(this)">
         </div>
 
         <div id="sign-nc-preview-container" style="display:none; text-align:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
@@ -440,9 +533,55 @@
       </div>
     </div>
 
+    <!-- FITUR 9: UPLOAD FOTO SCRAP BATCH WITH OFFLINE QUEUE -->
+    <div id="view-upload-scrap" style="display:none;" class="no-print">
+      <div class="page-header">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">Upload Foto Scrap per Batch</strong>
+      </div>
+
+      <div class="custom-card mb-3">
+        <div class="form-group mb-3">
+          <label>Scrap Batch Ke-berapa * (Persisten):</label>
+          <input type="number" id="scrap-batch-num" placeholder="Misal: 11" style="font-weight:bold; font-size:16px; color:#b91c1c;" onchange="saveScrapBatchPersist(this.value)">
+          <small class="text-muted" style="font-size:10px;">Nomor batch scrap ini akan tersimpan otomatis dan tidak akan reset sampai Anda mengubahnya.</small>
+        </div>
+
+        <button type="button" class="btn-primary-custom mb-3" style="background: linear-gradient(135deg, #dc2626, #b91c1c);" onclick="openScrapScanner()">
+          📸 Live Scan QR NCP Unit
+        </button>
+
+        <div class="form-group mb-3">
+          <label>Atau Ketik / Cari Nomor NCP Unit *:</label>
+          <input type="text" id="scrap-search-ncp" placeholder="Masukkan Nomor NCP" style="font-weight:bold;" oninput="handleScrapSearchInput(this.value)" autocomplete="off">
+          <div id="scrap-suggestion-box" class="suggestion-list"></div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Pilih Foto Unit Scrap *:</label>
+          <input type="file" id="scrap-file-input" accept="image/*" onchange="previewScrapPhoto(this)">
+        </div>
+
+        <div id="scrap-preview-container" style="display:none; text-align:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
+          <img id="scrap-img-preview" src="" style="max-width:100%; max-height:220px; border-radius:8px;">
+        </div>
+
+        <button type="button" class="btn-primary-custom" style="background:#b91c1c;" onclick="queueScrapUpload()">
+          ⚡ Simpan Foto Scrap (Fast < 0.5s)
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
 
+<!-- FLOATING BADGE INDIKATOR ANTREAN SINKRONISASI -->
+<div id="floating-sync-badge" class="floating-sync-badge" style="display:none;">
+  <span id="sync-icon">🔄</span>
+  <span id="sync-text">Semua Tersimpan</span>
+</div>
+
+<!-- SCANNER MODAL DIALOG -->
 <div id="scanner-modal" class="no-print">
   <div class="scanner-header">
     <strong style="font-size:16px; font-weight:800; color:#38bdf8;" id="scan-modal-title">📷 Live Scanner Barcode/QR</strong>
@@ -477,8 +616,8 @@
       <table style="width:100%; font-size:12px; line-height:1.6; margin-bottom:12px;">
         <tr><td style="width:110px;"><strong>NCP Code:</strong></td><td id="det-ncp">-</td></tr>
         <tr><td><strong>Part No:</strong></td><td id="det-partno">-</td></tr>
-        <tr><td><strong>Batch No (批次号):</strong></td><td id="det-batchno" style="font-weight:bold; color:#0284c7;">-</td></tr>
         <tr><td><strong>Part Name:</strong></td><td id="det-partname">-</td></tr>
+        <tr><td><strong>Batch No (批次号):</strong></td><td id="det-batchno" style="font-weight:bold; color:#0284c7;">-</td></tr>
         <tr><td><strong>Defect:</strong></td><td id="det-defect">-</td></tr>
         <tr>
           <td style="padding-top:8px;"><strong>Qty Transaksi *:</strong></td>
@@ -488,7 +627,8 @@
         </tr>
       </table>
 
-      <div class="form-group">
+      <!-- FITUR 2 & 3: FORM ADAPTIF STOCK IN / SCAN OUT -->
+      <div class="form-group" id="group-inv-area">
         <label>Area / Location 存放位置 *</label>
         <input type="text" id="inv-area" placeholder="e.g. Rack A-01 / Area Karantina">
       </div>
@@ -496,10 +636,11 @@
       <div class="form-group">
         <label>Action / Status 处理状态 *</label>
         <select id="inv-status">
-          <option value="Karantina (Quarantine)">Karantina (Quarantine 隔离)</option>
-          <option value="Rework OK">Rework OK (重工合格)</option>
-          <option value="Scrap">Scrap (报废)</option>
-          <option value="Return Supplier">Return Supplier (退回供应商)</option>
+          <option value="Karantina (Quarantine)" id="opt-status-karantina">Karantina (Quarantine 隔离)</option>
+          <option value="Rework OK" id="opt-status-rework">Rework OK (重工合格)</option>
+          <option value="Release" id="opt-status-release">Release (放行)</option>
+          <option value="Scrap" id="opt-status-scrap">Scrap (报废)</option>
+          <option value="Permintaan GAI" id="opt-status-gai">Permintaan GAI</option>
         </select>
       </div>
 
@@ -527,7 +668,6 @@
 </div>
 
 <script>
-  // URL WEB APP GOOGLE APPS SCRIPT
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwfIJr-FTqnRs5YfiLxzQPK7UMBtQuH9QQVFBzcU0RV2Sqhdk9mPRncp6sA91kTXXs/exec";
 
   let currentTxType = 'IN';
@@ -536,14 +676,21 @@
   let searchTimeout = null;
   let tagSearchTimeout = null;
   let signNcSearchTimeout = null;
+  let scrapSearchTimeout = null;
   let globalStockData = [];
   let currentPrintData = null;
   let signNcBase64 = '';
+  let scrapBase64 = '';
   let html5QrCodeScanner = null;
+
   let chartCategoryInstance = null;
   let chartStatusInstance = null;
   let chartTopPartsInstance = null;
+  let chartWeeklyCategoryInstance = null;
+  let chartWeeklyTrendInstance = null;
+
   let cachedNcpListDateShift = [];
+  let isProcessingScrapQueue = false;
 
   function callBackend(actionName, payload, onSuccess, onFailure) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -551,11 +698,13 @@
       if (onFailure) runner.withFailureHandler(onFailure);
       
       if (actionName === 'uploadFotoSignNC') runner.uploadFotoSignNC(payload);
+      else if (actionName === 'uploadFotoScrap') runner.uploadFotoScrap(payload);
       else if (actionName === 'buatTeksLaporan') runner.buatTeksLaporan(payload.tanggalRaw, payload.shift);
       else if (actionName === 'cariDataNCP') runner.cariDataNCP(payload.ncpCode);
       else if (actionName === 'getNcpByDateShift') runner.getNcpByDateShift(payload.tanggalRaw, payload.shift);
       else if (actionName === 'simpanTransaksiInventory') runner.simpanTransaksiInventory(payload);
       else if (actionName === 'getSummaryInventory') runner.getSummaryInventory();
+      else if (actionName === 'getCaseSummaryData') runner.getCaseSummaryData();
       else if (actionName === 'cariDataBatch') runner.cariDataBatch(payload.batchNoInput);
       else if (actionName === 'searchNcpPartial') runner.searchNcpPartial(payload.query);
     } else {
@@ -563,9 +712,7 @@
         method: 'POST',
         mode: 'cors',
         redirect: 'follow',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: actionName, payload: payload })
       })
       .then(res => {
@@ -611,7 +758,16 @@
     const today = new Date();
     document.getElementById('iqc-date').valueAsDate = today;
     document.getElementById('tag-filter-date').valueAsDate = today;
+
+    // RESTORE PERSISTEN SCRAP BATCH
+    const savedBatch = localStorage.getItem('last_scrap_batch');
+    if (savedBatch) {
+      document.getElementById('scrap-batch-num').value = savedBatch;
+    }
+
+    updateBatchNumberFromControls();
     checkLogin();
+    processScrapQueue();
   });
 
   function showAlert(msg, title = 'Informasi', icon = '💡') {
@@ -676,6 +832,7 @@
     document.getElementById('view-batch').style.display = 'none';
     document.getElementById('view-print-tag').style.display = 'none';
     document.getElementById('view-upload-sign').style.display = 'none';
+    document.getElementById('view-upload-scrap').style.display = 'none';
 
     if (pageId === 'iqc') {
       document.getElementById('view-iqc').style.display = 'block';
@@ -688,11 +845,14 @@
       document.getElementById('view-print-tag').style.display = 'block';
     } else if (pageId === 'upload-sign') {
       document.getElementById('view-upload-sign').style.display = 'block';
+    } else if (pageId === 'upload-scrap') {
+      document.getElementById('view-upload-scrap').style.display = 'block';
     } else {
       document.getElementById('view-dashboard').style.display = 'block';
     }
   }
 
+  /* ------------------- FITUR 1: IQC REPORT & KUMULATIF CHART ------------------- */
   function genIqcReport() {
     const tgl = document.getElementById('iqc-date').value;
     const shift = document.getElementById('iqc-shift').value;
@@ -718,9 +878,9 @@
 
   function renderCharts(data) {
     Chart.register(ChartDataLabels);
-
     const titleText = `IQC DAILY NC REPORT - ${data.dateStr}`;
 
+    // 1. CHART STATUS HARIAN
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     if (chartStatusInstance) chartStatusInstance.destroy();
 
@@ -737,33 +897,17 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 10, bottom: 20, left: 10, right: 10 } },
         plugins: {
-          title: {
-            display: true,
-            text: titleText,
-            color: '#0f172a',
-            font: { size: 14, weight: 'bold' },
-            padding: { top: 5, bottom: 2 }
-          },
-          subtitle: {
-            display: true,
-            text: `NC Distribution by Status (Total: ${data.totalNC} NC)`,
-            color: '#334155',
-            font: { size: 12, weight: 'bold' },
-            padding: { bottom: 12 }
-          },
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
-          datalabels: {
-            color: '#ffffff',
-            font: { weight: 'bold', size: 11 },
-            formatter: (value) => value > 0 ? value + " NC" : ''
-          }
+          title: { display: true, text: titleText, color: '#0f172a', font: { size: 13, weight: 'bold' } },
+          subtitle: { display: true, text: `NC Status (Total: ${data.totalNC} NC)`, font: { size: 11 } },
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
+          datalabels: { color: '#ffffff', font: { weight: 'bold', size: 10 }, formatter: (v) => v > 0 ? v + " NC" : '' }
         }
       },
       plugins: [whiteBackgroundPlugin]
     });
 
+    // 2. CHART KATEGORI HARIAN
     const ctxCat = document.getElementById('chartCategory').getContext('2d');
     if (chartCategoryInstance) chartCategoryInstance.destroy();
 
@@ -780,89 +924,103 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 10, bottom: 20, left: 10, right: 10 } },
         plugins: {
-          title: {
-            display: true,
-            text: titleText,
-            color: '#0f172a',
-            font: { size: 14, weight: 'bold' },
-            padding: { top: 5, bottom: 2 }
-          },
-          subtitle: {
-            display: true,
-            text: `NC Distribution by Category (Total: ${data.totalNC} NC)`,
-            color: '#334155',
-            font: { size: 12, weight: 'bold' },
-            padding: { bottom: 12 }
-          },
-          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } },
-          datalabels: {
-            color: '#ffffff',
-            font: { weight: 'bold', size: 11 },
-            formatter: (value) => value > 0 ? value + " NC" : ''
-          }
+          title: { display: true, text: titleText, color: '#0f172a', font: { size: 13, weight: 'bold' } },
+          subtitle: { display: true, text: `NC Category (Total: ${data.totalNC} NC)`, font: { size: 11 } },
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
+          datalabels: { color: '#ffffff', font: { weight: 'bold', size: 10 }, formatter: (v) => v > 0 ? v + " NC" : '' }
         }
       },
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
 
+    // 3. CHART TOP PARTS HARIAN
     const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
-
-    const topChartTitle = `TOP ${data.topLimit} REJECTED PARTS BY QUANTITY - ${data.dateStr}`;
 
     chartTopPartsInstance = new Chart(ctxTop, {
       type: 'bar',
       data: {
         labels: data.topPartLabels,
-        datasets: [{
-          label: 'Quantity (Pcs)',
-          data: data.topPartValues,
-          backgroundColor: '#3b82f6',
-          borderRadius: 6
-        }]
+        datasets: [{ label: 'Quantity (Pcs)', data: data.topPartValues, backgroundColor: '#3b82f6', borderRadius: 6 }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 10, bottom: 18, left: 10, right: 10 } },
         plugins: {
-          title: {
-            display: true,
-            text: topChartTitle,
-            color: '#0f172a',
-            font: { size: 15, weight: 'bold' },
-            padding: { top: 5, bottom: 15 }
-          },
+          title: { display: true, text: `TOP ${data.topLimit} REJECTED PARTS - ${data.dateStr}`, color: '#0f172a', font: { size: 14, weight: 'bold' } },
           legend: { display: false },
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            color: '#000000',
-            font: { weight: 'bold', size: 11 },
-            formatter: (val) => val + " Pcs"
-          }
+          datalabels: { anchor: 'end', align: 'top', color: '#000000', font: { weight: 'bold', size: 10 }, formatter: (v) => v + " Pcs" }
         },
-        scales: {
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-          x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
-        }
+        scales: { y: { beginAtZero: true }, x: { ticks: { font: { size: 9, weight: '600' } } } }
       },
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
+
+    // 4. CHART KUMULATIF MINGGUAN (PIE KATEGORI & TREND HARIAN)
+    if (data.weeklyChartData) {
+      const wData = data.weeklyChartData;
+
+      const ctxWCat = document.getElementById('chartWeeklyCategory').getContext('2d');
+      if (chartWeeklyCategoryInstance) chartWeeklyCategoryInstance.destroy();
+
+      chartWeeklyCategoryInstance = new Chart(ctxWCat, {
+        type: 'pie',
+        data: {
+          labels: wData.catLabels,
+          datasets: [{ data: wData.catValues, backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: `Kategori Kumulatif Mingguan (${wData.startDate} s/d ${wData.endDate})`, font: { size: 12, weight: 'bold' } },
+            subtitle: { display: true, text: `Total Kumulatif NC: ${wData.totalWeeklyNC} Cases`, font: { size: 10 } },
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
+            datalabels: { color: '#ffffff', font: { weight: 'bold', size: 10 }, formatter: (v) => v > 0 ? v + " NC" : '' }
+          }
+        },
+        plugins: [whiteBackgroundPlugin]
+      });
+
+      const ctxWTrend = document.getElementById('chartWeeklyTrend').getContext('2d');
+      if (chartWeeklyTrendInstance) chartWeeklyTrendInstance.destroy();
+
+      chartWeeklyTrendInstance = new Chart(ctxWTrend, {
+        type: 'bar',
+        data: {
+          labels: wData.labels,
+          datasets: [
+            { type: 'line', label: 'NC Cases', data: wData.ncTrend, borderColor: '#ef4444', backgroundColor: '#ef4444', borderWidth: 2, yAxisID: 'y' },
+            { type: 'bar', label: 'Qty Reject (Pcs)', data: wData.qtyTrend, backgroundColor: '#3b82f6', borderRadius: 4, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: { display: true, text: `Trend NG Seminggu Terakhir`, font: { size: 12, weight: 'bold' } },
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } },
+            datalabels: { anchor: 'end', align: 'top', font: { size: 9, weight: 'bold' } }
+          },
+          scales: {
+            y: { type: 'linear', display: true, position: 'left', beginAtZero: true },
+            y1: { type: 'linear', display: true, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+          }
+        },
+        plugins: [whiteBackgroundPlugin, watermarkPlugin]
+      });
+    }
   }
 
   function downloadCombinedPieCharts(fileName) {
     const canvas1 = document.getElementById('chartStatus');
     const canvas2 = document.getElementById('chartCategory');
-
     if (!canvas1 || !canvas2) return;
 
     const tempCanvas = document.createElement('canvas');
     const ctx = tempCanvas.getContext('2d');
-    const padding = 20;
-    const gap = 20;
+    const padding = 20, gap = 20;
     const w1 = canvas1.width, h1 = canvas1.height;
     const w2 = canvas2.width, h2 = canvas2.height;
 
@@ -876,55 +1034,71 @@
 
     const link = document.createElement('a');
     link.href = tempCanvas.toDataURL('image/jpeg', 0.95);
-    link.download = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+    link.download = fileName;
     link.click();
+    showAlert('Gambar gabungan Pie Chart berhasil diunduh!', 'Berhasil', '📥');
+  }
 
-    showAlert('Gambar gabungan kedua Pie Chart (.jpg) berhasil diunduh!', 'Unduh Berhasil', '📥');
+  function downloadCombinedWeeklyCharts(fileName) {
+    const canvas1 = document.getElementById('chartWeeklyCategory');
+    const canvas2 = document.getElementById('chartWeeklyTrend');
+    if (!canvas1 || !canvas2) return;
+
+    const tempCanvas = document.createElement('canvas');
+    const ctx = tempCanvas.getContext('2d');
+    const padding = 20, gap = 20;
+    const w1 = canvas1.width, h1 = canvas1.height;
+    const w2 = canvas2.width, h2 = canvas2.height;
+
+    tempCanvas.width = w1 + w2 + gap + (padding * 2);
+    tempCanvas.height = Math.max(h1, h2) + (padding * 2);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    ctx.drawImage(canvas1, padding, padding, w1, h1);
+    ctx.drawImage(canvas2, padding + w1 + gap, padding, w2, h2);
+
+    const link = document.createElement('a');
+    link.href = tempCanvas.toDataURL('image/jpeg', 0.95);
+    link.download = fileName;
+    link.click();
+    showAlert('Gambar Laporan Kumulatif Mingguan berhasil diunduh!', 'Berhasil', '📥');
   }
 
   function downloadChart(canvasId, fileName) {
     let chartInstance = null;
     if (canvasId === 'chartTopParts') chartInstance = chartTopPartsInstance;
-    if (canvasId === 'chartStatus') chartInstance = chartStatusInstance;
-    if (canvasId === 'chartCategory') chartInstance = chartCategoryInstance;
 
     if (!chartInstance) return;
 
     const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 1200;
-    exportCanvas.height = 650;
+    exportCanvas.width = 1200; exportCanvas.height = 650;
     const ctx = exportCanvas.getContext('2d');
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
 
     const tempChart = new Chart(ctx, {
       type: chartInstance.config.type,
       data: chartInstance.config.data,
-      options: Object.assign({}, chartInstance.config.options, {
-        responsive: false,
-        maintainAspectRatio: false,
-        animation: false
-      }),
+      options: Object.assign({}, chartInstance.config.options, { responsive: false, maintainAspectRatio: false, animation: false }),
       plugins: chartInstance.config.plugins
     });
 
     const link = document.createElement('a');
     link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
-    link.download = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
+    link.download = fileName;
     link.click();
-
     tempChart.destroy();
-    showAlert('Gambar chart HD (.jpg) berhasil diunduh!', 'Unduh Berhasil', '📥');
+    showAlert('Gambar chart HD berhasil diunduh!', 'Unduh Berhasil', '📥');
   }
 
   function copyIqcText() {
     const txtArea = document.getElementById('iqc-txt');
     txtArea.select();
     navigator.clipboard.writeText(txtArea.value);
-    showAlert('Teks Laporan berhasil disalin! 文本已复制', 'Berhasil', '📋');
+    showAlert('Teks Laporan berhasil disalin!', 'Berhasil', '📋');
   }
 
+  /* ------------------- FITUR SCANNER & SCAN IN / SCAN OUT ------------------- */
   function startLiveScanner(onSuccess) {
     if (!html5QrCodeScanner) {
       html5QrCodeScanner = new Html5Qrcode("reader");
@@ -946,14 +1120,13 @@
       document.getElementById('scanner-msg').innerText = "Arahkan kamera ke QR Code / Barcode NCP...";
     })
     .catch(err => {
-      console.error("Camera access error:", err);
-      document.getElementById('scanner-msg').innerText = "⚠️ Gagal membuka kamera. Izinkan akses kamera di browser HP Anda.";
+      document.getElementById('scanner-msg').innerText = "⚠️ Gagal membuka kamera. Izinkan akses kamera di browser.";
     });
   }
 
   async function stopLiveScanner() {
     if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
-      try { await html5QrCodeScanner.stop(); } catch (err) { console.error("Error stopping camera:", err); }
+      try { await html5QrCodeScanner.stop(); } catch (err) {}
     }
   }
 
@@ -965,8 +1138,20 @@
     document.getElementById('scanner-manual-box').style.display = 'block';
     document.getElementById('manual-ncp').value = '';
     hideSuggestions();
-    document.getElementById('scanner-modal').style.display = 'block';
 
+    // ADAPTASI FORM BERDASARKAN TX TYPE (FITUR 2 & 3)
+    if (currentTxType === 'IN') {
+      document.getElementById('group-inv-area').style.display = 'block';
+      document.getElementById('inv-status').value = 'Karantina (Quarantine)';
+      document.getElementById('inv-status').disabled = true; // Lock hanya Karantina
+    } else {
+      document.getElementById('group-inv-area').style.display = 'none'; // Sembunyikan lokasi pada Scan OUT
+      document.getElementById('inv-status').disabled = false;
+      document.getElementById('opt-status-karantina').style.display = 'none'; // Hilangkan opsi Karantina
+      document.getElementById('inv-status').value = 'Rework OK';
+    }
+
+    document.getElementById('scanner-modal').style.display = 'block';
     startLiveScanner((decodedCode) => { fetchNcpDetail(decodedCode); });
   }
 
@@ -982,6 +1167,21 @@
       closeScanner();
       document.getElementById('sign-nc-search-ncp').value = decodedCode.trim();
       showAlert("Kode NCP '" + decodedCode + "' berhasil ter-scan!", "Scan Berhasil", "✅");
+    });
+  }
+
+  function openScrapScanner() {
+    activeScanTarget = 'SCRAP';
+    document.getElementById('scan-modal-title').innerText = "📸 Live Scan QR NCP Scrap";
+    document.getElementById('ncp-detail-card').style.display = 'none';
+    document.getElementById('scanner-manual-box').style.display = 'none';
+    hideSuggestions();
+    document.getElementById('scanner-modal').style.display = 'block';
+
+    startLiveScanner((decodedCode) => {
+      closeScanner();
+      document.getElementById('scrap-search-ncp').value = decodedCode.trim();
+      showAlert("Kode NCP '" + decodedCode + "' dipilih!", "Scan Berhasil", "✅");
     });
   }
 
@@ -1004,7 +1204,6 @@
   function handleManualInput(val) {
     const query = val.trim();
     if (query.length < 2) { hideSuggestions(); return; }
-
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showSuggestions);
@@ -1037,7 +1236,7 @@
 
   function submitManualNcp() {
     const val = document.getElementById('manual-ncp').value.trim();
-    if (!val) { showAlert('Masukkan Kode NCP terlebih dahulu! 请输入NCP代码', 'Peringatan', '⚠️'); return; }
+    if (!val) { showAlert('Masukkan Kode NCP terlebih dahulu!', 'Peringatan', '⚠️'); return; }
     hideSuggestions();
     fetchNcpDetail(val);
   }
@@ -1066,9 +1265,6 @@
       } else {
         showAlert(res.message, 'Gagal', '❌');
       }
-    }, function(err) {
-      if (btn) { btn.innerText = 'OK'; btn.disabled = false; }
-      showAlert('Server Error: ' + err.message, 'Error', '⚠️');
     });
   }
 
@@ -1083,15 +1279,14 @@
 
     const user = JSON.parse(localStorage.getItem('geely_ncp_user'));
     const btn = document.getElementById('btn-confirm-tx');
-    btn.disabled = true;
-    btn.innerText = 'Saving...';
+    btn.disabled = true; btn.innerText = 'Saving...';
 
     const payload = {
       txType: currentTxType,
       ncpCode: scannedNcpData.ncpCode,
       partNo: scannedNcpData.partNo,
-      batchNo: scannedNcpData.batchNo || '-',
       partName: scannedNcpData.partName,
+      batchNo: scannedNcpData.batchNo || '-',
       qty: editedQty,
       defect: scannedNcpData.defect,
       actionStatus: document.getElementById('inv-status').value,
@@ -1102,8 +1297,7 @@
     };
 
     callBackend('simpanTransaksiInventory', payload, function(res) {
-      btn.disabled = false;
-      btn.innerText = 'Confirm 确认';
+      btn.disabled = false; btn.innerText = 'Confirm 确认';
       if (res.success) {
         showAlert(res.message, 'Berhasil', '✅').then(() => {
           resetScannerView();
@@ -1117,10 +1311,25 @@
     });
   }
 
+  /* ------------------- FITUR 4: CASE SUMMARY & RACK DYNAMICS ------------------- */
+  function switchStockSubTab(type) {
+    if (type === 'cases') {
+      document.getElementById('tab-stock-main').classList.remove('active');
+      document.getElementById('tab-stock-cases').classList.add('active');
+      document.getElementById('subview-stock-main').style.display = 'none';
+      document.getElementById('subview-stock-cases').style.display = 'block';
+      loadCaseSummaryData();
+    } else {
+      document.getElementById('tab-stock-cases').classList.remove('active');
+      document.getElementById('tab-stock-main').classList.add('active');
+      document.getElementById('subview-stock-cases').style.display = 'none';
+      document.getElementById('subview-stock-main').style.display = 'block';
+      loadStockSummary();
+    }
+  }
+
   function loadStockSummary() {
     document.getElementById('stock-list-area').innerHTML = '<i>Loading stock...</i>';
-    document.getElementById('stock-search-input').value = '';
-    
     callBackend('getSummaryInventory', {}, function(res) {
       if (res.success) {
         globalStockData = res.list || [];
@@ -1131,23 +1340,9 @@
     });
   }
 
-  function filterStockData() {
-    const query = document.getElementById('stock-search-input').value.toLowerCase().trim();
-    if (!query) { renderStockTable(globalStockData); return; }
-
-    const filteredList = globalStockData.filter(item => {
-      return (item.ncpCode || '').toLowerCase().includes(query) ||
-             (item.partNo || '').toLowerCase().includes(query) ||
-             (item.batchNo || '').toLowerCase().includes(query) ||
-             (item.partName || '').toLowerCase().includes(query);
-    });
-
-    renderStockTable(filteredList);
-  }
-
   function renderStockTable(list) {
     if (!list || list.length === 0) {
-      document.getElementById('stock-list-area').innerHTML = '<div style="font-size:12px; color:#64748b; padding:12px 0; text-align:center;">Data stok tidak ditemukan.</div>';
+      document.getElementById('stock-list-area').innerHTML = '<div style="font-size:12px; color:#64748b; padding:12px 0; text-align:center;">Data stok kosong.</div>';
       return;
     }
 
@@ -1175,6 +1370,79 @@
 
     html += `</tbody></table>`;
     document.getElementById('stock-list-area').innerHTML = html;
+  }
+
+  function loadCaseSummaryData() {
+    document.getElementById('case-summary-list-area').innerHTML = '<i>Memuat data case location...</i>';
+    callBackend('getCaseSummaryData', {}, function(res) {
+      if (!res.success) {
+        document.getElementById('case-summary-list-area').innerHTML = 'Gagal memuat data Case.';
+        return;
+      }
+
+      if (!res.cases || res.cases.length === 0) {
+        document.getElementById('case-summary-list-area').innerHTML = '<div style="text-align:center; padding:15px; color:#64748b;">Tidak ada barang di Case saat ini.</div>';
+        return;
+      }
+
+      let html = `<div class="mb-3 p-2 bg-light border rounded text-center">
+        <strong style="font-size:12px;">Total Keseluruhan Dalam Case: ${res.grandTotalNC} NC Case (${res.grandTotalQty} Pcs)</strong>
+      </div>`;
+
+      res.cases.forEach(c => {
+        html += `<div class="card mb-3 border-secondary shadow-sm">
+          <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <span class="fw-bold">📍 Location / Case: ${c.caseName}</span>
+            <span class="badge bg-info text-dark">${c.totalCases} Cases | Total Qty: ${c.totalQty} Pcs</span>
+          </div>
+          <div class="card-body p-2" style="overflow-x:auto;">
+            <table class="table table-sm table-bordered mb-0" style="font-size:11px;">
+              <thead class="table-light">
+                <tr>
+                  <th>NCP Code</th>
+                  <th>Part No & Name</th>
+                  <th>Batch</th>
+                  <th>Qty</th>
+                  <th>Defect</th>
+                </tr>
+              </thead>
+              <tbody>`;
+        
+        c.items.forEach(item => {
+          html += `<tr>
+            <td><strong>${item.ncpCode}</strong></td>
+            <td>${item.partNo}<br><small class="text-muted">${item.partName}</small></td>
+            <td>${item.batchNo}</td>
+            <td><strong>${item.qty} Pcs</strong></td>
+            <td>${item.defect}</td>
+          </tr>`;
+        });
+
+        html += `</tbody></table></div></div>`;
+      });
+
+      document.getElementById('case-summary-list-area').innerHTML = html;
+    });
+  }
+
+  /* ------------------- FITUR 6: PENCARIAN & DUKUNGAN INPUT BATCH BATCH ------------------- */
+  function adjustBatchNumber(delta) {
+    let inp = document.getElementById('batch-num-suffix');
+    let val = parseInt(inp.value) || 0;
+    val += delta;
+    if (val < 0) val = 0;
+    if (val > 999) val = 999;
+    inp.value = String(val).padStart(3, '0');
+    updateBatchNumberFromControls();
+  }
+
+  function updateBatchNumberFromControls() {
+    const prefix = document.getElementById('batch-prefix-select').value;
+    const mid = document.getElementById('batch-middle-code').value.trim();
+    let sufVal = parseInt(document.getElementById('batch-num-suffix').value) || 0;
+    const suf = String(sufVal).padStart(3, '0');
+
+    document.getElementById('inputBatchSearch').value = prefix + mid + suf;
   }
 
   function prosesCekBatch() {
@@ -1212,40 +1480,30 @@
     });
   }
 
-  /* ------------------- FITUR PRINT TAG MERAH VIA TANGGAL & SHIFT ------------------- */
+  /* ------------------- FITUR 7: PRINT TAG MERAH OPTION SINGLE ------------------- */
   function loadNcpListByDateShift() {
     const tgl = document.getElementById('tag-filter-date').value;
     const shift = document.getElementById('tag-filter-shift').value;
-
     if (!tgl) { showAlert("Pilih tanggal terlebih dahulu!", "Peringatan", "⚠️"); return; }
 
     const btn = document.getElementById('btn-load-date-shift');
-    btn.disabled = true;
-    btn.innerText = "⏳ Memuat Daftar NCP...";
+    btn.disabled = true; btn.innerText = "⏳ Memuat...";
 
     callBackend('getNcpByDateShift', { tanggalRaw: tgl, shift: shift }, function(res) {
-      btn.disabled = false;
-      btn.innerText = "🔍 Tampilkan Daftar NCP Shift Ini";
-
+      btn.disabled = false; btn.innerText = "🔍 Tampilkan Daftar NCP Shift Ini";
       if (!res.success) {
         showAlert(res.message, "Informasi", "ℹ️");
         document.getElementById('ncp-list-table-container').style.display = 'none';
         return;
       }
-
       cachedNcpListDateShift = res.ncpList || [];
       renderNcpTableDateShift(cachedNcpListDateShift);
-    }, function(err) {
-      btn.disabled = false;
-      btn.innerText = "🔍 Tampilkan Daftar NCP Shift Ini";
-      showAlert("Server Error: " + err.message, "Gagal", "❌");
     });
   }
 
   function renderNcpTableDateShift(list) {
     const tbody = document.getElementById('tbodyNcpDateShift');
     tbody.innerHTML = '';
-
     list.forEach((item, idx) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -1253,15 +1511,10 @@
         <td><strong style="color:#0284c7;">${item.ncpCode}</strong></td>
         <td>${item.partNo}<br><small class="text-muted">${item.partName}</small></td>
         <td><strong>${item.qty}</strong> Pcs</td>
-        <td>
-          <button class="btn btn-sm btn-primary fw-bold" style="padding:2px 8px; font-size:10px;" onclick="selectNcpForPrint(${idx})">
-            🖨️ Cetak
-          </button>
-        </td>
+        <td><button class="btn btn-sm btn-primary fw-bold" style="padding:2px 8px; font-size:10px;" onclick="selectNcpForPrint(${idx})">🖨️ Cetak</button></td>
       `;
       tbody.appendChild(tr);
     });
-
     document.getElementById('ncp-list-table-container').style.display = 'block';
   }
 
@@ -1273,7 +1526,6 @@
       document.getElementById('start-copy').value = 1;
       document.getElementById('print-controls').style.display = 'block';
       renderTagsPreview();
-
       document.getElementById('print-controls').scrollIntoView({ behavior: 'smooth' });
     }
   }
@@ -1281,7 +1533,6 @@
   function handleTagSearchInput(val) {
     const query = val.trim();
     if (query.length < 3) { hideTagSuggestions(); return; }
-
     clearTimeout(tagSearchTimeout);
     tagSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showTagSuggestions);
@@ -1292,7 +1543,6 @@
     const sugBox = document.getElementById('tag-suggestion-box');
     sugBox.innerHTML = '';
     if (!list || list.length === 0) { hideTagSuggestions(); return; }
-
     list.forEach(item => {
       const div = document.createElement('div');
       div.className = 'suggestion-item';
@@ -1324,7 +1574,6 @@
         document.getElementById('tag-render-container').innerHTML = '';
         return;
       }
-
       currentPrintData = res;
       document.getElementById('total-copy').value = res.qty || 1;
       document.getElementById('start-copy').value = 1;
@@ -1336,153 +1585,21 @@
   function renderTagsPreview() {
     if (!currentPrintData) return;
 
+    var isSingleTagMode = document.getElementById('chk-single-tag-mode').checked;
     var startCopy = parseInt(document.getElementById('start-copy').value) || 1;
     var totalCopy = parseInt(document.getElementById('total-copy').value) || 1;
     var html = "";
     var preparedByVal = currentPrintData.preparedBy || "-";
     var dateVal = currentPrintData.dateVal || "-";
 
-    for (var i = startCopy; i <= totalCopy; i++) {
-      html += `
-      <div class="red-tag-container">
-        <div class="red-tag-header">
-          <div>
-            <div class="red-tag-title-en">NON-CONFORMING PRODUCT TAG</div>
-            <div class="red-tag-title-cn">不合格品标签</div>
-          </div>
-          <div class="geely-logo-svg">
-            <svg width="85" height="42" viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg">
-              <g fill="#000000">
-                <path d="M 20,20 C 55,16 95,15 135,15 L 135,78 C 95,78 55,76 22,72 C 21,55 20,37 20,20 Z"/>
-                <path d="M 148,15 C 216,14 284,14 352,15 L 352,78 C 284,79 216,79 148,78 Z"/>
-                <path d="M 365,15 C 405,15 445,16 480,20 C 480,37 479,55 478,72 C 445,76 405,78 365,78 Z"/>
-
-                <path d="M 24,86 C 55,90 95,92 135,92 L 135,152 C 102,141 58,122 36,108 C 29,102 25,95 24,86 Z"/>
-                <path d="M 148,92 C 216,93 284,93 352,92 L 352,162 C 284,172 216,172 148,162 Z"/>
-                <path d="M 365,92 C 405,92 445,90 476,86 C 475,95 471,102 464,108 C 442,122 398,141 365,152 Z"/>
-
-                <rect x="20" y="195" width="72" height="12"/>
-                <rect x="20" y="195" width="12" height="50"/>
-                <rect x="20" y="233" width="72" height="12"/>
-                <rect x="80" y="214" width="12" height="31"/>
-                <rect x="52" y="214" width="40" height="12"/>
-
-                <rect x="115" y="195" width="12" height="50"/>
-                <rect x="115" y="195" width="72" height="12"/>
-                <rect x="115" y="214" width="58" height="10"/>
-                <rect x="115" y="233" width="72" height="12"/>
-
-                <rect x="210" y="195" width="12" height="50"/>
-                <rect x="210" y="195" width="72" height="12"/>
-                <rect x="210" y="214" width="58" height="10"/>
-                <rect x="210" y="233" width="72" height="12"/>
-
-                <rect x="305" y="195" width="12" height="50"/>
-                <rect x="305" y="233" width="72" height="12"/>
-
-                <polygon points="400,195 414,195 442,222 428,222"/>
-                <polygon points="472,195 458,195 430,222 444,222"/>
-                <rect x="430" y="220" width="14" height="25"/>
-              </g>
-            </svg>
-          </div>
-        </div>
-
-        <div class="red-tag-body">
-          <div class="tag-row">
-            <div class="tag-label">Model / 车型:</div>
-            <div class="tag-val">
-              <span class="chk-item">☐ E22H</span>
-              <span class="chk-item">☐ E245</span>
-              <span class="chk-item">☐ P145</span>
-            </div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Part Number / 零件编号:</div>
-            <div class="tag-val"><strong>${currentPrintData.partNo}</strong></div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Part Name / 零件名称:</div>
-            <div class="tag-val">${currentPrintData.partName}</div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Batch No / 批次:</div>
-            <div class="tag-val"><strong>${currentPrintData.batchNo || '-'}</strong></div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Box No / 箱号:</div>
-            <div class="tag-val"><strong>${currentPrintData.boxNo || '-'}</strong></div>
-          </div>
-
-          <div class="qty-banner">
-            Qty / 数量: ${i} of ${totalCopy}
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Prepared By 填写人:</div>
-            <div class="tag-val">${preparedByVal}</div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Issue Category / 不良类别:</div>
-            <div class="tag-val">
-              <div class="chk-group">
-                <span class="chk-item">☐ PD</span> <span class="chk-item">☐ PQ</span> <span class="chk-item">☐ FQ</span> 
-                <span class="chk-item">☐ ST</span> <span class="chk-item">☐ WS</span> <span class="chk-item">☐ AQ</span>
-                <span class="chk-item">☐ LD</span> <span class="chk-item">☐ ID</span> <span class="chk-item">☐ HP</span> 
-                <span class="chk-item">☐ MP</span> <span class="chk-item">☐ IP</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tag-row" style="flex-direction:column; align-items:flex-start; padding:4px 0;">
-            <div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div>
-            <div class="tag-val" style="margin-top:2px; font-weight:bold;">${currentPrintData.defect || '-'}</div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Responsibility / 责任:</div>
-            <div class="tag-val">
-              <span class="chk-item">☐ GEELY</span>
-              <span class="chk-item">☐ HIM</span>
-              <span class="chk-item">☐ Need validation 需要确认</span>
-            </div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Disposition / 处置方式:</div>
-            <div class="tag-val">
-              <span class="chk-item">☐ Claim</span>
-              <span class="chk-item">☐ Repair</span>
-              <span class="chk-item">☐ Rework</span>
-              <span class="chk-item">☐ Return</span>
-              <span class="chk-item">☐ Hold</span>
-            </div>
-          </div>
-
-          <div class="tag-row">
-            <div class="tag-label">Date / 日期:</div>
-            <div class="tag-val" style="display:flex; justify-content: flex-start; gap: 15px;">
-              <span>${dateVal}</span>
-              <span><b>NG Box / 箱号:</b>     </span>          
-            </div>
-          </div>
-        </div>
-
-        <div class="red-tag-footer">
-          <div class="ncp-text-box">
-            <div style="font-size:10px; opacity:0.9;">NCP CODE / 编号:</div>
-            <div style="font-size:18px; font-weight:900; letter-spacing:0.5px;">${currentPrintData.ncpCode}</div>
-          </div>
-          <div class="qr-code-wrapper">
-            <div class="qrcode-target" data-code="${currentPrintData.ncpCode}"></div>
-          </div>
-        </div>
-      </div>`;
+    if (isSingleTagMode) {
+      document.getElementById('multi-tag-controls').style.display = 'none';
+      html += buildSingleTagHtml(currentPrintData, currentPrintData.qty, preparedByVal, dateVal);
+    } else {
+      document.getElementById('multi-tag-controls').style.display = 'flex';
+      for (var i = startCopy; i <= totalCopy; i++) {
+        html += buildMultiTagHtml(currentPrintData, i, totalCopy, preparedByVal, dateVal);
+      }
     }
 
     document.getElementById('tag-render-container').innerHTML = html;
@@ -1497,15 +1614,69 @@
     }, 100);
   }
 
+  function buildSingleTagHtml(data, totalQty, preparedByVal, dateVal) {
+    return `<div class="red-tag-container">
+      <div class="red-tag-header">
+        <div>
+          <div class="red-tag-title-en">NON-CONFORMING PRODUCT TAG</div>
+          <div class="red-tag-title-cn">不合格品标签</div>
+        </div>
+      </div>
+      <div class="red-tag-body">
+        <div class="tag-row"><div class="tag-label">Part Number / 零件编号:</div><div class="tag-val"><strong>${data.partNo}</strong></div></div>
+        <div class="tag-row"><div class="tag-label">Part Name / 零件名称:</div><div class="tag-val">${data.partName}</div></div>
+        <div class="tag-row"><div class="tag-label">Batch No / 批次:</div><div class="tag-val"><strong>${data.batchNo || '-'}</strong></div></div>
+        <div class="qty-banner">Qty / 数量: ${totalQty} Pcs</div>
+        <div class="tag-row"><div class="tag-label">Prepared By 填写人:</div><div class="tag-val">${preparedByVal}</div></div>
+        <div class="tag-row" style="flex-direction:column; align-items:flex-start;"><div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div><div class="tag-val" style="font-weight:bold;">${data.defect || '-'}</div></div>
+        <div class="tag-row"><div class="tag-label">Date / 日期:</div><div class="tag-val">${dateVal}</div></div>
+      </div>
+      <div class="red-tag-footer">
+        <div class="ncp-text-box">
+          <div style="font-size:10px;">NCP CODE / 编号:</div>
+          <div style="font-size:18px; font-weight:900;">${data.ncpCode}</div>
+        </div>
+        <div class="qr-code-wrapper"><div class="qrcode-target" data-code="${data.ncpCode}"></div></div>
+      </div>
+    </div>`;
+  }
+
+  function buildMultiTagHtml(data, currentCopy, totalCopy, preparedByVal, dateVal) {
+    return `<div class="red-tag-container">
+      <div class="red-tag-header">
+        <div>
+          <div class="red-tag-title-en">NON-CONFORMING PRODUCT TAG</div>
+          <div class="red-tag-title-cn">不合格品标签</div>
+        </div>
+      </div>
+      <div class="red-tag-body">
+        <div class="tag-row"><div class="tag-label">Part Number / 零件编号:</div><div class="tag-val"><strong>${data.partNo}</strong></div></div>
+        <div class="tag-row"><div class="tag-label">Part Name / 零件名称:</div><div class="tag-val">${data.partName}</div></div>
+        <div class="tag-row"><div class="tag-label">Batch No / 批次:</div><div class="tag-val"><strong>${data.batchNo || '-'}</strong></div></div>
+        <div class="qty-banner">Qty / 数量: ${currentCopy} of ${totalCopy}</div>
+        <div class="tag-row"><div class="tag-label">Prepared By 填写人:</div><div class="tag-val">${preparedByVal}</div></div>
+        <div class="tag-row" style="flex-direction:column; align-items:flex-start;"><div class="tag-label" style="color:#b91c1c;">Defect Description / 缺陷描述:</div><div class="tag-val" style="font-weight:bold;">${data.defect || '-'}</div></div>
+        <div class="tag-row"><div class="tag-label">Date / 日期:</div><div class="tag-val">${dateVal}</div></div>
+      </div>
+      <div class="red-tag-footer">
+        <div class="ncp-text-box">
+          <div style="font-size:10px;">NCP CODE / 编号:</div>
+          <div style="font-size:18px; font-weight:900;">${data.ncpCode}</div>
+        </div>
+        <div class="qr-code-wrapper"><div class="qrcode-target" data-code="${data.ncpCode}"></div></div>
+      </div>
+    </div>`;
+  }
+
   function executePrintTags() {
     renderTagsPreview();
     setTimeout(function() { window.print(); }, 300);
   }
 
+  /* ------------------- FITUR 8: UPLOAD FOTO SIGN NC ------------------- */
   function handleSignNcSearchInput(val) {
     const query = val.trim();
     if (query.length < 2) { hideSignNcSuggestions(); return; }
-
     clearTimeout(signNcSearchTimeout);
     signNcSearchTimeout = setTimeout(() => {
       callBackend('searchNcpPartial', { query: query }, showSignNcSuggestions);
@@ -1516,7 +1687,6 @@
     const sugBox = document.getElementById('sign-nc-suggestion-box');
     sugBox.innerHTML = '';
     if (!list || list.length === 0) { hideSignNcSuggestions(); return; }
-
     list.forEach(item => {
       const div = document.createElement('div');
       div.className = 'suggestion-item';
@@ -1553,14 +1723,10 @@
     if (!signNcBase64) { showAlert('Ambil atau pilih foto terlebih dahulu!', 'Peringatan', '⚠️'); return; }
 
     const btn = document.getElementById('btn-submit-sign-nc');
-    btn.disabled = true;
-    btn.innerText = '⏳ Uploading & Updating...';
+    btn.disabled = true; btn.innerText = '⏳ Uploading...';
 
-    const payload = { ncpCode: ncpCode, base64Data: signNcBase64 };
-
-    callBackend('uploadFotoSignNC', payload, function(res) {
-      btn.disabled = false;
-      btn.innerText = '📸 Upload Foto Sign NC';
+    callBackend('uploadFotoSignNC', { ncpCode: ncpCode, base64Data: signNcBase64 }, function(res) {
+      btn.disabled = false; btn.innerText = '📸 Upload Foto Sign NC';
       if (res.success) {
         showAlert(res.message, 'Berhasil', '✅');
         document.getElementById('sign-nc-search-ncp').value = '';
@@ -1570,10 +1736,152 @@
       } else {
         showAlert(res.message, 'Gagal', '❌');
       }
+    });
+  }
+
+  /* ------------------- FITUR 9: UPLOAD FOTO SCRAP WITH OFFLINE QUEUE ------------------- */
+  function saveScrapBatchPersist(val) {
+    if (val) {
+      localStorage.setItem('last_scrap_batch', val.trim());
+    }
+  }
+
+  function handleScrapSearchInput(val) {
+    const query = val.trim();
+    if (query.length < 2) { hideScrapSuggestions(); return; }
+    clearTimeout(scrapSearchTimeout);
+    scrapSearchTimeout = setTimeout(() => {
+      callBackend('searchNcpPartial', { query: query }, showScrapSuggestions);
+    }, 300);
+  }
+
+  function showScrapSuggestions(list) {
+    const sugBox = document.getElementById('scrap-suggestion-box');
+    sugBox.innerHTML = '';
+    if (!list || list.length === 0) { hideScrapSuggestions(); return; }
+    list.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item';
+      div.innerHTML = `<strong>${item.ncpCode}</strong> <small>${item.partNo} - ${item.partName}</small>`;
+      div.onclick = function() {
+        document.getElementById('scrap-search-ncp').value = item.ncpCode;
+        hideScrapSuggestions();
+      };
+      sugBox.appendChild(div);
+    });
+    sugBox.style.display = 'block';
+  }
+
+  function hideScrapSuggestions() {
+    const sugBox = document.getElementById('scrap-suggestion-box');
+    if (sugBox) sugBox.style.display = 'none';
+  }
+
+  function previewScrapPhoto(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        scrapBase64 = e.target.result;
+        document.getElementById('scrap-img-preview').src = scrapBase64;
+        document.getElementById('scrap-preview-container').style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function queueScrapUpload() {
+    const scrapBatch = document.getElementById('scrap-batch-num').value.trim();
+    const ncpCode = document.getElementById('scrap-search-ncp').value.trim();
+
+    if (!scrapBatch) { showAlert("Isikan nomor Scrap Batch terlebih dahulu!", "Peringatan", "⚠️"); return; }
+    if (!ncpCode) { showAlert("Isikan / scan nomor NCP terlebih dahulu!", "Peringatan", "⚠️"); return; }
+    if (!scrapBase64) { showAlert("Pilih foto unit scrap terlebih dahulu!", "Peringatan", "⚠️"); return; }
+
+    // SIMPAN NOMOR BATCH SECARA PERSISTEN
+    saveScrapBatchPersist(scrapBatch);
+
+    const taskPayload = {
+      ncpCode: ncpCode,
+      scrapBatch: scrapBatch,
+      base64Data: scrapBase64,
+      timestamp: Date.now()
+    };
+
+    // RESTORE QUEUE LOCAL STORAGE
+    let queue = [];
+    try {
+      queue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
+    } catch(e) { queue = []; }
+
+    queue.push(taskPayload);
+    localStorage.setItem('scrap_upload_queue', JSON.stringify(queue));
+
+    // RESET FORM INSTAN (< 0.5 DETIK)
+    document.getElementById('scrap-search-ncp').value = '';
+    document.getElementById('scrap-file-input').value = '';
+    document.getElementById('scrap-preview-container').style.display = 'none';
+    scrapBase64 = '';
+
+    // PEMICU BACKGROUND PROCESSING
+    updateFloatingSyncBadge();
+    processScrapQueue();
+  }
+
+  function updateFloatingSyncBadge() {
+    let queue = [];
+    try {
+      queue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
+    } catch(e) { queue = []; }
+
+    const badge = document.getElementById('floating-sync-badge');
+    const icon = document.getElementById('sync-icon');
+    const text = document.getElementById('sync-text');
+
+    if (queue.length > 0) {
+      badge.style.display = 'flex';
+      badge.className = 'floating-sync-badge syncing';
+      icon.innerText = '🔄';
+      text.innerText = `Mengirim (${queue.length})...`;
+    } else {
+      badge.className = 'floating-sync-badge done';
+      icon.innerText = '✅';
+      text.innerText = `Semua Tersimpan`;
+      setTimeout(() => { badge.style.display = 'none'; }, 2500);
+    }
+  }
+
+  function processScrapQueue() {
+    if (isProcessingScrapQueue) return;
+
+    let queue = [];
+    try {
+      queue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
+    } catch(e) { queue = []; }
+
+    if (queue.length === 0) {
+      updateFloatingSyncBadge();
+      return;
+    }
+
+    isProcessingScrapQueue = true;
+    updateFloatingSyncBadge();
+
+    const currentTask = queue[0];
+
+    callBackend('uploadFotoScrap', currentTask, function(res) {
+      let updatedQueue = [];
+      try {
+        updatedQueue = JSON.parse(localStorage.getItem('scrap_upload_queue') || '[]');
+      } catch(e) { updatedQueue = []; }
+
+      updatedQueue.shift(); // Hapus item yang selesai dikirim
+      localStorage.setItem('scrap_upload_queue', JSON.stringify(updatedQueue));
+
+      isProcessingScrapQueue = false;
+      processScrapQueue(); // Lanjutkan item antrean berikutnya
     }, function(err) {
-      btn.disabled = false;
-      btn.innerText = '📸 Upload Foto Sign NC';
-      showAlert('Server Error: ' + err.message, 'Error', '⚠️');
+      isProcessingScrapQueue = false;
+      setTimeout(processScrapQueue, 5000); // Retry jika gagal koneksi
     });
   }
 </script>
