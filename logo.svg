@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
+    </linearGradient>
+    <linearGradient id="emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Base Squircle -->
+  <rect x="32" y="32" width="448" height="448" rx="110" fill="url(#bg)" />
+  
+  <!-- Stylized Q Ring -->
+  <circle cx="240" cy="225" r="105" fill="none" stroke="url(#cyan)" stroke-width="28" />
+  
+  <!-- Checkmark Tail -->
+  <path d="M 205 225 L 250 270 L 355 155" fill="none" stroke="url(#emerald)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Label -->
+  <text x="256" y="415" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, sans-serif" font-size="52" font-weight="800" fill="#F8FAFC" text-anchor="middle" letter-spacing="10">IQC</text>
+</svg>
