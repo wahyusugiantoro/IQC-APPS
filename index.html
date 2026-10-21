@@ -4,7 +4,6 @@
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IQC App - Integrated Dashboard System</title>
-  <!-- KODE LOGO DI SINI -->
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   
   <!-- Bootstrap CSS & Icons -->
@@ -99,7 +98,6 @@
     .scrap-photo-thumb img { width: 75px; height: 75px; object-fit: cover; }
     .scrap-photo-remove { position: absolute; top: 2px; right: 2px; background: rgba(220, 38, 38, 0.85); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-    /* FLOATING BADGE OFFLINE QUEUE */
     .floating-badge {
       position: fixed;
       bottom: 20px;
@@ -222,6 +220,12 @@
           <div class="icon-box" style="background:#fef2f2; color:#b91c1c;">🗑️</div>
           <div class="menu-title">Upload Foto Scrap</div>
           <div class="menu-sub">Multi Foto & Auto Scan Out</div>
+        </div>
+
+        <div class="menu-card" onclick="showPage('ticketing')" style="grid-column: span 2; background: linear-gradient(135deg, #0f172a, #1e293b); color: white;">
+          <div class="icon-box" style="background:#38bdf8; color:#0f172a;">🎟️</div>
+          <div class="menu-title" style="color:white;">Ticketing Replacement Part NG</div>
+          <div class="menu-sub" style="color:#94a3b8;">Auto-Batch Window 6 Jam & RQ Generator</div>
         </div>
       </div>
     </div>
@@ -628,6 +632,82 @@
       </div>
     </div>
 
+    <!-- 7. TICKETING REPLACEMENT VIEW -->
+    <div id="view-ticketing" style="display:none;" class="no-print">
+      <div class="page-header">
+        <button type="button" class="btn-back-dash" onclick="showPage('dashboard')">← Dashboard</button>
+        <strong style="font-size:15px;">Ticketing Replacement Part NG</strong>
+      </div>
+
+      <div class="custom-card mb-3">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-clock-history"></i> Auto-Batching Filter Window Waktu</h6>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label>Tanggal Master Target:</label>
+            <input type="date" id="ticket-filter-date" style="font-weight:bold;" onchange="loadEligibleTicketingNCP()">
+          </div>
+          <div class="col-6">
+            <label>Window Waktu (Per 6 Jam):</label>
+            <select id="ticket-filter-window" style="font-weight:bold;" onchange="loadEligibleTicketingNCP()">
+              <option value="ALL">🔄 Semua Jam (24 Jam)</option>
+              <option value="W1">Window 1 (00:00 - 05:59)</option>
+              <option value="W2">Window 2 (06:00 - 11:59)</option>
+              <option value="W3">Window 3 (12:00 - 17:59)</option>
+              <option value="W4">Window 4 (18:00 - 23:59)</option>
+            </select>
+          </div>
+        </div>
+        <button type="button" class="btn-primary-custom mb-3" onclick="loadEligibleTicketingNCP()">
+          🔍 Refresh / Cari Part NG SIAP Ticketing
+        </button>
+
+        <div id="ticketing-eligible-container" style="display:none;" class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:12px; font-weight:bold; color:#0f172a;" id="lbl-eligible-count">Daftar NCP Siap Request:</span>
+            <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="toggleSelectAllTicketing(this)">Toggle All</button>
+          </div>
+          <div class="table-responsive" style="max-height:250px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;">
+            <table class="table table-sm table-hover align-middle mb-0" style="font-size:11px;">
+              <thead class="table-dark">
+                <tr>
+                  <th width="30">Pilih</th>
+                  <th>NCP Code</th>
+                  <th>Part Details</th>
+                  <th>Qty</th>
+                  <th>Status Tiket / Request ID</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyEligibleTicketing"></tbody>
+            </table>
+          </div>
+          <button type="button" class="btn-primary-custom mt-3" style="background:#15803d;" onclick="submitCreateTicketRequest()">
+            🚀 Gabung & Buat 1 Request ID (Form RQ)
+          </button>
+        </div>
+      </div>
+
+      <div class="custom-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-bold text-dark mb-0"><i class="bi bi-journal-text"></i> Riwayat Request Ticketing</h6>
+          <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="loadTicketingHistory()">🔄 Refresh</button>
+        </div>
+        <div class="table-responsive" style="max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;">
+          <table class="table table-sm table-striped align-middle mb-0" style="font-size:11px;">
+            <thead class="table-light">
+              <tr>
+                <th>Request ID</th>
+                <th>NCP Code</th>
+                <th>Tgl / Jam</th>
+                <th>Part Details</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyTicketHistory"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -739,6 +819,8 @@
   let scrapBase64Array = [];
   let html5QrCodeScanner = null;
 
+  let cachedEligibleTicketingList = [];
+
   let chartCategoryInstance = null;
   let chartStatusInstance = null;
   let chartTopPartsInstance = null;
@@ -764,6 +846,9 @@
       else if (actionName === 'getCaseSummaryData') runner.getCaseSummaryData(payload);
       else if (actionName === 'cariDataBatch') runner.cariDataBatch(payload.batchNoInput);
       else if (actionName === 'searchNcpPartial') runner.searchNcpPartial(payload.query);
+      else if (actionName === 'getEligibleTicketingNCP') runner.getEligibleTicketingNCP(payload);
+      else if (actionName === 'submitCreateTicketRequest') runner.submitCreateTicketRequest(payload);
+      else if (actionName === 'getTicketingHistory') runner.getTicketingHistory();
     } else {
       fetch(WEB_APP_URL, {
         method: 'POST',
@@ -853,6 +938,7 @@
     const today = new Date();
     document.getElementById('iqc-date').valueAsDate = today;
     document.getElementById('tag-filter-date').valueAsDate = today;
+    document.getElementById('ticket-filter-date').valueAsDate = today;
 
     const savedBatch = localStorage.getItem('last_scrap_batch');
     if (savedBatch) {
@@ -931,6 +1017,7 @@
     document.getElementById('view-print-tag').style.display = 'none';
     document.getElementById('view-upload-sign').style.display = 'none';
     document.getElementById('view-upload-scrap').style.display = 'none';
+    document.getElementById('view-ticketing').style.display = 'none';
 
     if (pageId === 'iqc') {
       document.getElementById('view-iqc').style.display = 'block';
@@ -945,9 +1032,138 @@
       document.getElementById('view-upload-sign').style.display = 'block';
     } else if (pageId === 'upload-scrap') {
       document.getElementById('view-upload-scrap').style.display = 'block';
+    } else if (pageId === 'ticketing') {
+      document.getElementById('view-ticketing').style.display = 'block';
+      loadEligibleTicketingNCP();
+      loadTicketingHistory();
     } else {
       document.getElementById('view-dashboard').style.display = 'block';
     }
+  }
+
+  /* ------------------- 7. TICKETING REPLACEMENT PART NG LOGIC ------------------- */
+  function loadEligibleTicketingNCP() {
+    const tgl = document.getElementById('ticket-filter-date').value;
+    const windowType = document.getElementById('ticket-filter-window').value;
+
+    callBackend('getEligibleTicketingNCP', { targetDate: tgl, windowType: windowType }, function(res) {
+      if (res.success) {
+        cachedEligibleTicketingList = res.list || [];
+        renderEligibleTicketingTable(cachedEligibleTicketingList);
+      } else {
+        showAlert(res.message, 'Gagal', '❌');
+      }
+    });
+  }
+
+  function renderEligibleTicketingTable(list) {
+    const tbody = document.getElementById('tbodyEligibleTicketing');
+    tbody.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Tidak ada data NCP NG yang sesuai kriteria pada window/tanggal ini.</td></tr>';
+      document.getElementById('ticketing-eligible-container').style.display = 'block';
+      document.getElementById('lbl-eligible-count').innerText = "Daftar NCP Siap Request (0 Item):";
+      return;
+    }
+
+    let countAvailable = 0;
+
+    list.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      const isReq = item.isRequested;
+      if (!isReq) countAvailable++;
+
+      const statusBadge = isReq 
+        ? `<span class="badge bg-warning text-dark">Sudah Masuk: ${item.existingRequestId}</span>` 
+        : `<span class="badge bg-secondary">Belum Request</span>`;
+
+      const chkBox = isReq 
+        ? `<input type="checkbox" disabled>` 
+        : `<input type="checkbox" class="chk-ticket-item" data-idx="${idx}" checked>`;
+
+      tr.innerHTML = `
+        <td class="text-center">${chkBox}</td>
+        <td><strong>${item.ncpCode}</strong></td>
+        <td>${item.partNo}<br><small class="text-muted">${item.partName}</small></td>
+        <td><strong>${item.qty}</strong> Pcs</td>
+        <td>${statusBadge}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('lbl-eligible-count').innerText = `Daftar NCP Siap Request (${countAvailable} Item Otomatis Terpilih):`;
+    document.getElementById('ticketing-eligible-container').style.display = 'block';
+  }
+
+  function toggleSelectAllTicketing(btn) {
+    const chks = document.querySelectorAll('.chk-ticket-item:not(:disabled)');
+    if (chks.length === 0) return;
+    const allChecked = Array.from(chks).every(c => c.checked);
+    chks.forEach(c => c.checked = !allChecked);
+  }
+
+  function submitCreateTicketRequest() {
+    const chks = document.querySelectorAll('.chk-ticket-item:checked');
+    if (chks.length === 0) {
+      showAlert('Pilih/centang minimal 1 NCP untuk digabungkan ke Request Ticket!', 'Peringatan', '⚠️');
+      return;
+    }
+
+    const selectedItems = [];
+    chks.forEach(c => {
+      const idx = parseInt(c.getAttribute('data-idx'));
+      if (cachedEligibleTicketingList[idx]) {
+        selectedItems.push(cachedEligibleTicketingList[idx]);
+      }
+    });
+
+    const user = JSON.parse(localStorage.getItem('geely_ncp_user'));
+
+    callBackend('submitCreateTicketRequest', {
+      items: selectedItems,
+      userName: user.name,
+      department: user.dept
+    }, function(res) {
+      if (res.success) {
+        showAlert(res.message, 'Berhasil Buat Tiket', '🎉').then(() => {
+          loadEligibleTicketingNCP();
+          loadTicketingHistory();
+        });
+      } else {
+        showAlert(res.message, 'Gagal', '❌');
+      }
+    });
+  }
+
+  function loadTicketingHistory() {
+    callBackend('getTicketingHistory', {}, function(res) {
+      if (res.success) {
+        renderTicketingHistoryTable(res.list || []);
+      }
+    });
+  }
+
+  function renderTicketingHistoryTable(list) {
+    const tbody = document.getElementById('tbodyTicketHistory');
+    tbody.innerHTML = '';
+
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Belum ada riwayat ticketing.</td></tr>';
+      return;
+    }
+
+    list.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong style="color:#0284c7;">${item.requestId}</strong></td>
+        <td><strong>${item.ncpCode}</strong></td>
+        <td><small class="text-muted">${item.timestamp}</small></td>
+        <td>${item.partNo}<br><small>${item.partName}</small></td>
+        <td><span class="badge bg-warning text-dark">${item.status}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
   /* ------------------- 1. IQC REPORT & KUMULATIF CHART ------------------- */
@@ -978,7 +1194,6 @@
     Chart.register(ChartDataLabels);
     const titleText = `IQC DAILY NC REPORT - ${data.dateStr}`;
 
-    // 1. PIE CHART STATUS
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     if (chartStatusInstance) chartStatusInstance.destroy();
 
@@ -1010,7 +1225,6 @@
       plugins: [whiteBackgroundPlugin]
     });
 
-    // 2. PIE CHART CATEGORY
     const ctxCat = document.getElementById('chartCategory').getContext('2d');
     if (chartCategoryInstance) chartCategoryInstance.destroy();
 
@@ -1042,7 +1256,6 @@
       plugins: [whiteBackgroundPlugin]
     });
 
-    // 3. BAR CHART TOP PARTS
     const ctxTop = document.getElementById('chartTopParts').getContext('2d');
     if (chartTopPartsInstance) chartTopPartsInstance.destroy();
 
@@ -1088,7 +1301,6 @@
       plugins: [whiteBackgroundPlugin, watermarkPlugin]
     });
 
-    // 4. WEEKLY CHARTS
     if (data.weeklyChartData) {
       const wData = data.weeklyChartData;
 
@@ -1224,7 +1436,6 @@
     }
   }
 
-  // Helper untuk Menggambar Canvas Tanpa Merusak Aspect Ratio
   function drawCanvasKeepAspect(ctx, sourceCanvas, x, y, width, height) {
     if (!sourceCanvas) return;
     const sourceAspect = sourceCanvas.width / sourceCanvas.height;
@@ -1245,7 +1456,6 @@
     ctx.drawImage(sourceCanvas, renderX, renderY, renderWidth, renderHeight);
   }
 
-  // FUNGSI UNDUH SINGLE CHART HD
   function downloadChart(canvasId, fileName) {
     let chartInstance = null;
     if (canvasId === 'chartTopParts') chartInstance = chartTopPartsInstance;
@@ -1290,7 +1500,6 @@
     }
   }
 
-  // FUNGSI UNDUH GABUNGAN PIE CHARTS
   function downloadCombinedPieCharts(fileName) {
     const canvas1 = document.getElementById('chartStatus');
     const canvas2 = document.getElementById('chartCategory');
@@ -1324,7 +1533,6 @@
     showAlert('Gambar Gabungan Pie Chart berhasil diunduh!', 'Berhasil', '📥');
   }
 
-  // FUNGSI UNDUH GABUNGAN WEEKLY REPORT
   function downloadCombinedWeeklyCharts(fileName) {
     const canvas1 = document.getElementById('chartWeeklyCategory');
     const canvas2 = document.getElementById('chartWeeklyTopParts');
